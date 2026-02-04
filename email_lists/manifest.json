@@ -1,0 +1,10 @@
+{
+    "files": [
+        {
+            "name": "employees_sample.csv",
+            "description": "Sample employee list for testing"
+        }
+    ],
+    "lastUpdated": "2026-02-04T02:26:00+05:30",
+    "description": "List of available CSV files in the email_lists folder"
+}

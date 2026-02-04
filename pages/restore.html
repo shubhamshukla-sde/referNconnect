@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Data Architect | referNconnect</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --surface: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --primary: #818cf8;
+            --text: #f9fafb;
+            --text-dim: #9ca3af;
+            --success: #22c55e;
+            --warning: #fbbf24;
+            --danger: #f87171;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .badge {
+            background: var(--primary);
+            color: white;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text);
+            font-family: monospace;
+            font-size: 12px;
+            margin-bottom: 1rem;
+            resize: vertical;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        button,
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #c084fc);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        button.secondary,
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        button.danger {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        button:hover:not(:disabled),
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #log {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-success {
+            color: var(--success);
+        }
+
+        .log-error {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .log-warning {
+            color: var(--warning);
+        }
+
+        .log-header {
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--primary);
+            margin: 1.5rem 0 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-row">
+            <div>
+                <h1>🛠️ Advanced Data Architect <span class="badge">v2.1</span></h1>
+                <p>Production-grade database synchronization, robust fusion, and safe recovery.</p>
+            </div>
+            <a href="../index.html" class="btn btn-secondary">← Back to Home</a>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.1rem;">1. Intelligent Import</h2>
+            <textarea id="jsonInput" placeholder='Paste your JSON array here for a fresh import...'></textarea>
+            <div class="actions">
+                <button id="btnImport" onclick="importData()">📤 Upload & Smart Sync</button>
+                <button class="secondary" onclick="formatInput()">✨ Format</button>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: var(--primary);">
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.1rem; color: var(--primary);">2. Deep Database Fusion</h2>
+            <p style="margin-bottom: 1.5rem; font-size: 0.85rem;">Scans entire database. Cross-references Domains AND
+                Names. Deduplicates employees safely. Atomic execution.</p>
+            <button id="btnMerge" class="secondary" onclick="mergeExistingData()"
+                style="width: 100%; padding: 1.25rem; font-size: 1rem; border-color: var(--primary); background: rgba(129, 140, 248, 0.1);">⚡
+                Start Global Fusion & Cleanup</button>
+        </div>
+
+        <div class="card" style="border-color: var(--danger);">
+            <h2 style="margin-bottom: 0.5rem; font-size: 1.1rem; color: var(--danger);">3. Danger Zone</h2>
+            <p style="margin-bottom: 1.5rem; font-size: 0.85rem;">Permanently delete all records from the database. Use
+                this before a fresh re-import if things are messy.</p>
+            <button id="btnClear" class="danger" onclick="clearFirebase()" style="width: 100%; padding: 1rem;">🗑️ Wipe
+                Entire Database</button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmZLDH2V9JTHB2ZiHZdRcv0yO07MQVaM0",
+            authDomain: "refernconnect-953b0.firebaseapp.com",
+            projectId: "refernconnect-953b0",
+            storageBucket: "refernconnect-953b0.firebasestorage.app",
+            messagingSenderId: "9614706593",
+            appId: "1:9614706593:web:48d0ac91bf301f90ea6de0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const COL_NAME = 'companies';
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            if (type === 'section') {
+                const entry = document.createElement('div');
+                entry.className = 'log-header';
+                entry.textContent = `--- ${message.toUpperCase()} ---`;
+                logDiv.appendChild(entry);
+            } else {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logDiv.appendChild(entry);
+            }
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function extractValue(obj, keys) {
+            for (const key of keys) {
+                const val = obj[key];
+                if (val !== undefined && val !== null && val !== '') return String(val).trim();
+            }
+            return '';
+        }
+
+        function normalizeKey(str) {
+            if (!str) return '';
+            return String(str).toLowerCase()
+                .replace(/^https?:\/\//, '')
+                .replace(/^www\./, '')
+                .replace(/[^a-z0-9]/g, '')
+                .trim();
+        }
+
+        window.formatInput = function () {
+            const input = document.getElementById('jsonInput');
+            try { input.value = JSON.stringify(JSON.parse(input.value), null, 2); }
+            catch (e) { log('Invalid JSON', 'error'); }
+        };
+
+        function createCompanyObject(group) {
+            // Safety fallback for every single field to prevent Firestore 'undefined' error
+            return {
+                name: String(group.name || group.domain || 'Unknown').trim(),
+                domain: String(group.domain || '').trim(),
+                industry: String(group.industry || '').trim(),
+                size: String(group.size || '').trim(),
+                headquarters: String(group.headquarters || group.location || '').trim(),
+                type: String(group.type || '').trim(),
+                linkedin: String(group.linkedin || group.linkedIn || '').trim(),
+                employees: Array.isArray(group.employees) ? group.employees.map(e => ({
+                    id: String(e.id || Math.random().toString(36).substr(2, 9)),
+                    firstName: String(e.firstName || '').trim(),
+                    lastName: String(e.lastName || '').trim(),
+                    email: String(e.email || '').trim(),
+                    phone: String(e.phone || '').trim(),
+                    jobTitle: String(e.jobTitle || e.title || '').trim(),
+                    location: String(e.location || '').trim(),
+                    linkedin: String(e.linkedin || '').trim()
+                })) : [],
+                updatedAt: new Date().toISOString(),
+                createdAt: String(group.createdAt || new Date().toISOString())
+            };
+        }
+
+        window.importData = async function () {
+            const btn = document.getElementById('btnImport');
+            const input = document.getElementById('jsonInput');
+            try {
+                if (!input.value) return log('Please paste JSON data first.', 'error');
+                btn.disabled = true;
+                const data = JSON.parse(input.value);
+                log(`Starting intelligent import of ${data.length} records.`, 'section');
+
+                const groupMap = new Map();
+                for (const item of data) {
+                    const name = extractValue(item, ['Company name', 'name', 'companyName']);
+                    const domain = extractValue(item, ['Company domain', 'domain', 'companyDomain']);
+                    const key = normalizeKey(domain || name);
+                    if (!key) continue;
+
+                    if (!groupMap.has(key)) {
+                        groupMap.set(key, {
+                            name, domain,
+                            industry: extractValue(item, ['Company industry', 'industry']),
+                            size: extractValue(item, ['Company size', 'size']),
+                            headquarters: extractValue(item, ['Company headquarters', 'headquarters', 'location']),
+                            type: extractValue(item, ['Company type', 'type']),
+                            linkedin: extractValue(item, ['Company LinkedIn', 'linkedin']),
+                            employees: []
+                        });
+                    }
+
+                    const first = extractValue(item, ['First name', 'firstName']);
+                    const last = extractValue(item, ['Last name', 'lastName']);
+                    if (first || last) {
+                        groupMap.get(key).employees.push({
+                            firstName: first, lastName: last,
+                            email: extractValue(item, ['Email', 'email']),
+                            jobTitle: extractValue(item, ['Job title', 'jobTitle', 'title']),
+                            location: extractValue(item, ['Location', 'location']),
+                            linkedin: extractValue(item, ['LinkedIn', 'linkedin'])
+                        });
+                    }
+                }
+
+                log(`Local grouping resulted in ${groupMap.size} unique companies.`, 'info');
+                for (const [key, rawGroup] of groupMap) {
+                    const companyObj = createCompanyObject(rawGroup);
+                    try {
+                        await addDoc(collection(db, COL_NAME), companyObj);
+                        log(`✅ Uploaded: ${companyObj.name}`, 'success');
+                    } catch (err) {
+                        log(`❌ Failed ${companyObj.name}: ${err.message}`, 'error');
+                    }
+                }
+                log('Import Complete. Recommend running "Global Fusion" to clean up any pre-existing duplicates.', 'warning');
+            } catch (e) { log(e.message, 'error'); }
+            finally { btn.disabled = false; }
+        };
+
+        window.clearFirebase = async function () {
+            if (!confirm('EXTREME DANGER: This will delete EVERYTHING in your database. Proceed?')) return;
+            const btn = document.getElementById('btnClear');
+            try {
+                btn.disabled = true;
+                log('Starting total database wipe...', 'section');
+                const snap = await getDocs(collection(db, COL_NAME));
+                log(`Deleting ${snap.size} documents...`, 'warning');
+
+                let count = 0;
+                for (const d of snap.docs) {
+                    await deleteDoc(doc(db, COL_NAME, d.id));
+                    count++;
+                    if (count % 10 === 0) log(`Deleted ${count}...`, 'info');
+                }
+                log('🎉 Database is now EMPTY.', 'success');
+            } catch (e) { log(e.message, 'error'); }
+            finally { btn.disabled = false; }
+        };
+
+        window.mergeExistingData = async function () {
+            const btn = document.getElementById('btnMerge');
+            try {
+                if (!confirm('GLOBAL FUSION: This will merge all duplicates across the entire database. This cannot be undone. Proceed?')) return;
+                btn.disabled = true;
+                log('Starting Global Fusion Process (Safe Mode)', 'section');
+
+                const snapshot = await getDocs(collection(db, COL_NAME));
+                const docs = snapshot.docs.map(d => ({ fId: d.id, ...d.data() }));
+                log(`Fetched ${docs.length} documents from Firebase.`, 'info');
+
+                const mergedRegistry = [];
+
+                docs.forEach(docData => {
+                    const name = extractValue(docData, ['name', 'Company name']);
+                    const domain = extractValue(docData, ['domain', 'Company domain']);
+                    const dKey = normalizeKey(domain);
+                    const nKey = normalizeKey(name);
+
+                    let group = mergedRegistry.find(g =>
+                        (dKey && g.dKeys.has(dKey)) || (nKey && g.nKeys.has(nKey))
+                    );
+
+                    if (!group) {
+                        group = {
+                            name: name || domain || 'Unknown',
+                            domain: domain,
+                            industry: docData.industry || docData['Company industry'],
+                            size: docData.size || docData['Company size'],
+                            headquarters: docData.headquarters || docData.location || docData['Company headquarters'],
+                            linkedin: docData.linkedin || docData.linkedIn || docData['Company LinkedIn'],
+                            type: docData.type || docData['Company type'],
+                            employees: [],
+                            dKeys: new Set(),
+                            nKeys: new Set(),
+                            firebaseIds: [],
+                            createdAt: docData.createdAt
+                        };
+                        mergedRegistry.push(group);
+                    }
+
+                    if (dKey) group.dKeys.add(dKey);
+                    if (nKey) group.nKeys.add(nKey);
+                    group.firebaseIds.push(docData.fId);
+
+                    // Conservative metadata merge
+                    if (!group.domain) group.domain = domain;
+                    if (!group.industry) group.industry = docData.industry || docData['Company industry'];
+                    if (!group.size) group.size = docData.size || docData['Company size'];
+                    if (!group.headquarters) group.headquarters = docData.headquarters || docData.location || docData['Company headquarters'];
+                    if (!group.linkedin) group.linkedin = docData.linkedin || docData.linkedIn || docData['Company LinkedIn'];
+                    if (!group.type) group.type = docData.type || docData['Company type'];
+
+                    const incomingEmps = Array.isArray(docData.employees) ? docData.employees : [];
+                    incomingEmps.forEach(emp => {
+                        const email = (emp.email || '').toLowerCase().trim();
+                        const fullName = `${(emp.firstName || '').toLowerCase()} ${(emp.lastName || '').toLowerCase()}`.trim();
+
+                        const isDuplicate = group.employees.some(e => {
+                            const eEmail = (e.email || '').toLowerCase().trim();
+                            const eFullName = `${(e.firstName || '').toLowerCase()} ${(e.lastName || '').toLowerCase()}`.trim();
+                            return (email && eEmail === email) || (fullName && eFullName === fullName);
+                        });
+
+                        if (!isDuplicate) group.employees.push(emp);
+                    });
+                });
+
+                log(`Global analysis complete. Found ${mergedRegistry.length} unique company clusters.`, 'warning');
+
+                let totalDeleted = 0;
+                let totalMerged = 0;
+
+                for (const group of mergedRegistry) {
+                    if (group.firebaseIds.length > 1) {
+                        log(`Fusing ${group.name} (${group.firebaseIds.length} sources)...`, 'warning');
+
+                        // 1. Delete all originals
+                        for (const id of group.firebaseIds) {
+                            try {
+                                await deleteDoc(doc(db, COL_NAME, id));
+                                totalDeleted++;
+                            } catch (err) {
+                                log(`⚠️ Failed to delete ${id}: ${err.message}`, 'error');
+                            }
+                        }
+
+                        // 2. Insert sanitized composite record
+                        const cleanObj = createCompanyObject(group);
+                        try {
+                            await addDoc(collection(db, COL_NAME), cleanObj);
+                            totalMerged++;
+                            log(`✅ Fused: ${cleanObj.name} (${cleanObj.employees.length} unique contacts)`, 'success');
+                        } catch (err) {
+                            log(`❌ Critical Fail inserting ${cleanObj.name}: ${err.message}`, 'error');
+                        }
+                    }
+                }
+
+                log(`Fusion Complete! Removed ${totalDeleted} duplicates and unified them into ${totalMerged} clean records.`, 'success');
+                btn.textContent = '✨ Fusion Complete';
+            } catch (e) { log(`Fusion Error: ${e.message}`, 'error'); console.error(e); }
+            finally { btn.disabled = false; }
+        };
+    </script>
+</body>
+
+</html>

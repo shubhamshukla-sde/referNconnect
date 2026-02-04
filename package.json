@@ -1,0 +1,11 @@
+{
+    "name": "refernconnect",
+    "version": "1.0.0",
+    "description": "Premium Employee Directory with Firebase Integration",
+    "main": "index.html",
+    "scripts": {
+        "start": "./run.sh"
+    },
+    "author": "",
+    "license": "ISC"
+}
