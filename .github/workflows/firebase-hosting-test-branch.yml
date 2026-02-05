@@ -1,0 +1,42 @@
+# Manual workflow to temporarily deploy any branch to live site for testing
+# After testing, push to main branch to restore original production code
+
+name: Test Branch on Live Site
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch name to deploy for testing (e.g., feature/new-ui)'
+        required: true
+        default: 'main'
+      confirmation:
+        description: 'Type YES to confirm temporary live deployment'
+        required: true
+        default: ''
+
+jobs:
+  test_deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirmation == 'YES' }}
+    steps:
+      - name: Checkout specified branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      
+      - name: Deploy to Firebase Hosting (Live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_REFERNCONNECT_953B0 }}'
+          channelId: live
+          projectId: refernconnect-953b0
+      
+      - name: Reminder
+        run: |
+          echo "⚠️ REMINDER: Your development branch is now deployed to the LIVE site!"
+          echo "📌 Branch deployed: ${{ github.event.inputs.branch }}"
+          echo "🔄 To restore main branch, either:"
+          echo "   1. Run this workflow again with 'main' as the branch"
+          echo "   2. Push any commit to main branch (auto-deploys via merge workflow)"
