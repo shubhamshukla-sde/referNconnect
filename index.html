@@ -15,7 +15,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-logo">
-                <h1 class="logo-text">refer&connect</h1>
+                <h1 class="logo-text">referNconnect</h1>
                 <p class="logo-subtext">Premium Employee Directory</p>
             </div>
             <div id="navActions" class="nav-actions">
@@ -52,7 +52,139 @@
     </div>
 
 
+    <!-- Job Search Modal -->
+    <div id="jobSearchModal" class="view modal-overlay" style="display: none;">
+        <div class="card modal-content" style="max-width: 600px; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 id="jobModalTitle" style="margin: 0; font-size: 1.2rem;">🔍 Job Search</h2>
+                <button id="btnCloseJobModal"
+                    style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">✕</button>
+            </div>
 
+            <!-- Resume Upload Section - Compact -->
+            <div id="resumeUploadSection">
+                <!-- Quick Search Options -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                    <div>
+                        <label
+                            style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.25rem; display: block;">📍
+                            Your Location</label>
+                        <input type="text" id="locationInput" placeholder="e.g. Noida, Delhi NCR"
+                            style="width: 100%; padding: 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem;">
+                    </div>
+                    <div>
+                        <label
+                            style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.25rem; display: block;">📅
+                            Time Range</label>
+                        <select id="timeRangeSelect"
+                            style="width: 100%; padding: 0.6rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem;">
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="quarter">This Quarter</option>
+                            <option value="year">This Year</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Main Action Buttons -->
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                    <button id="btnSearchAllJobs" class="btn" style="flex: 1; padding: 0.75rem; font-size: 0.9rem;">
+                        🔍 Search Jobs
+                    </button>
+                    <button id="btnParseResume" class="btn"
+                        style="flex: 1; padding: 0.75rem; font-size: 0.9rem; background: var(--surface);">
+                        🎯 Match with Resume
+                    </button>
+                </div>
+
+                <!-- Resume Section - Collapsible -->
+                <details id="resumeDetails" style="background: var(--surface); border-radius: 8px; padding: 0.75rem;">
+                    <summary
+                        style="cursor: pointer; font-size: 0.85rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.5rem;">
+                        <span>📄 Resume (optional)</span>
+                        <span id="savedResumeIndicator" style="display: none; color: #10b981; font-size: 0.75rem;">✓
+                            Saved</span>
+                    </summary>
+                    <div style="margin-top: 0.75rem;">
+                        <!-- Compact file upload -->
+                        <div id="resumeDropZone"
+                            style="border: 1px dashed var(--border); border-radius: 6px; padding: 0.75rem; text-align: center; cursor: pointer; font-size: 0.85rem; color: var(--text-dim);">
+                            📁 Drop PDF/TXT or <u>browse</u>
+                            <input type="file" id="resumeFileInput" accept=".pdf,.txt,.doc,.docx"
+                                style="display: none;">
+                        </div>
+                        <!-- Or paste text -->
+                        <textarea id="resumeTextInput" placeholder="Or paste resume text..."
+                            style="width: 100%; height: 80px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; color: var(--text); font-size: 0.8rem; resize: vertical; margin-top: 0.5rem;"></textarea>
+
+                        <!-- Clear button if saved -->
+                        <div id="savedResumeInfo"
+                            style="display: none; margin-top: 0.5rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: var(--text-dim);">Skills saved: <span
+                                    id="savedSkillsCount">0</span></span>
+                            <button id="btnClearResume"
+                                style="background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem;">Clear</button>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Loading State -->
+            <div id="jobSearchStatus" style="display: none; text-align: center; padding: 2rem; color: var(--text-dim);">
+                <div class="loading-spinner"
+                    style="width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 0.75rem;">
+                </div>
+                <span id="jobSearchStatusText" style="font-size: 0.9rem;">Searching...</span>
+            </div>
+
+            <!-- Results -->
+            <div id="jobSearchResults" style="display: none;"></div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .job-post-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-post-card:hover {
+            border-color: var(--primary);
+        }
+
+        .hiring-status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .hiring-status.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .hiring-status.some {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .hiring-status.none {
+            background: rgba(107, 114, 128, 0.2);
+            color: #6b7280;
+        }
+    </style>
 
 
     <script type="module" src="src/core/app.js"></script>
