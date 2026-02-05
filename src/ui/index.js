@@ -54,6 +54,11 @@ export const renderDirectory = (companies, filter = '', callbacks = {}) => {
             callbacks.onOpenCompany?.(company);
         });
 
+        card.querySelector('.btn-jobs')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            callbacks.onSearchJobs?.(company);
+        });
+
         // Also allow clicking the card itself
         card.addEventListener('click', () => {
             callbacks.onOpenCompany?.(company);

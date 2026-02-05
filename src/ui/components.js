@@ -25,9 +25,12 @@ export const createCompanyCard = (company) => {
                 <span>🏢 ${company.type || 'Company'} • ${formatSize(company.size)}</span>
                 <a href="${formatUrl(company.domain)}" target="_blank" onclick="event.stopPropagation()" style="color: var(--primary); text-decoration: none; margin-top: 0.4rem;">${(company.domain || '').replace(/^https?:\/\//, '')}</a>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
                 <span style="color: var(--text-dim); font-size: 0.85rem;">${employeeCount} Referral Contacts</span>
-                <button class="btn btn-view" style="background: var(--surface); padding: 0.5rem 1rem;">Open</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-jobs" style="background: linear-gradient(135deg, #10b981, #059669); padding: 0.5rem 0.8rem; font-size: 0.8rem;" title="Find recent job posts">🔍 Jobs</button>
+                    <button class="btn btn-view" style="background: var(--surface); padding: 0.5rem 1rem;">Open</button>
+                </div>
             </div>
         </div>
     `;
