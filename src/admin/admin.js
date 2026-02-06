@@ -143,6 +143,21 @@ const setupEventListeners = () => {
     } else {
         console.error('CRITICAL: btnDeduplicate not found in DOM');
     }
+
+    // Edit Mode Toggle
+    const toggleEditMode = document.getElementById('toggleEditMode');
+    if (toggleEditMode) {
+        // Initialize from storage
+        const isEditMode = localStorage.getItem('editMode') === 'true';
+        toggleEditMode.checked = isEditMode;
+
+        // Add listener
+        toggleEditMode.addEventListener('change', (e) => {
+            const enabled = e.target.checked;
+            localStorage.setItem('editMode', enabled);
+            log(`Edit mode ${enabled ? 'enabled' : 'disabled'}`, 'info');
+        });
+    }
 };
 
 /**

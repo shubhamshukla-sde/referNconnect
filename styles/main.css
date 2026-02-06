@@ -14,6 +14,16 @@
     --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Edit Mode Toggle Logic */
+.btn-edit {
+    display: none !important;
+}
+
+body.edit-mode .btn-edit {
+    display: inline-block !important;
+    /* or flex/block depending on context, assuming inline-block or implicit default for buttons */
+}
+
 * {
     margin: 0;
     padding: 0;
