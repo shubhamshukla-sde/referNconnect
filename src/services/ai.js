@@ -207,8 +207,403 @@ const normalizeData = (data) => {
     }));
 };
 
+/**
+ * Search for recent job posts for a company using Perplexity AI
+ * @param {string} companyName - Company name to search for
+ * @param {string} location - Optional location to filter results
+ * @param {string} timeRange - Time filter: week, month, quarter, year, all
+ * @returns {Promise<Object>} Job search results with posts array
+ */
+export const searchJobPosts = async (companyName, location = '', timeRange = 'month') => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error('Perplexity API key not configured');
+    }
+
+    const encodedCompany = encodeURIComponent(companyName);
+    const encodedLocation = location ? encodeURIComponent(location) : '';
+
+    // Time range to Google date filter (tbs parameter)
+    const timeFilters = {
+        week: '&tbs=qdr:w',      // Past week
+        month: '&tbs=qdr:m',     // Past month
+        quarter: '&tbs=qdr:m3',  // Past 3 months
+        year: '&tbs=qdr:y',      // Past year
+        all: ''                   // No filter
+    };
+    const timeFilter = timeFilters[timeRange] || timeFilters.month;
+    const timeLabel = {
+        week: 'This Week',
+        month: 'This Month',
+        quarter: 'This Quarter',
+        year: 'This Year',
+        all: 'All Time'
+    }[timeRange] || 'This Month';
+
+    const systemPrompt = `You are a job search assistant. Create Google search URLs to find LinkedIn job posts.
+
+Generate URLs with these patterns:
+- Base: https://www.google.com/search?q=SEARCH_TERMS${timeFilter}
+- The ${timeFilter ? `"${timeFilter}"` : 'no'} parameter filters results to ${timeLabel.toLowerCase()}
+
+OUTPUT FORMAT (return ONLY this JSON):
+{
+  "company": "${companyName}",
+  "searchLinks": [
+    {
+      "title": "Search title",
+      "description": "Brief description",
+      "googleSearchUrl": "https://www.google.com/search?q=...",
+      "icon": "emoji"
+    }
+  ],
+  "hiringStatus": "Check search results"
+}`;
+
+    const userPrompt = `Create Google search links for ${companyName} jobs:
+
+1. LinkedIn Jobs (${timeLabel}): site:linkedin.com/jobs+${encodedCompany}${encodedLocation ? `+${encodedLocation}` : ''}
+2. "We're hiring" posts: site:linkedin.com+${encodedCompany}+"hiring"
+3. Referral posts: site:linkedin.com+${encodedCompany}+referral
+${location ? `4. Jobs in ${location}: site:linkedin.com/jobs+${encodedCompany}+${encodedLocation}
+5. Naukri ${location}: site:naukri.com+${encodedCompany}+${encodedLocation}` : `4. Naukri jobs: site:naukri.com+${encodedCompany}`}
+6. Careers page: ${encodedCompany}+careers+jobs
+
+Add time filter "${timeFilter}" for ${timeLabel} results. Make URLs clickable.`;
+
+    try {
+        const response = await fetch(API.PERPLEXITY, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: API.PERPLEXITY_MODEL,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.2,
+                max_tokens: 2048
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'API request failed');
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content || '';
+
+        return extractJobSearchJSON(content);
+    } catch (error) {
+        console.error('Job search error:', error);
+        throw error;
+    }
+};
+
+/**
+ * Extract and parse job search JSON from AI response
+ * @param {string} content - Raw AI response
+ * @returns {Object} Parsed job search results
+ */
+const extractJobSearchJSON = (content) => {
+    let cleaned = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
+
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        return {
+            company: '',
+            jobPosts: [],
+            hiringStatus: 'Unknown',
+            notes: 'Could not parse response'
+        };
+    }
+
+    try {
+        return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+        console.warn('Job search JSON parse failed:', e);
+        return {
+            company: '',
+            jobPosts: [],
+            hiringStatus: 'Unknown',
+            notes: 'Could not parse response'
+        };
+    }
+};
+
+/**
+ * Parse resume text to extract skills and experience
+ * @param {string} resumeText - Raw resume text
+ * @returns {Promise<Object>} Parsed resume data with skills
+ */
+export const parseResume = async (resumeText) => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error('Perplexity API key not configured');
+    }
+
+    const systemPrompt = `You are a resume parser and job market expert. Extract skills from the resume and identify the most in-demand ones.
+
+OUTPUT FORMAT (return ONLY this JSON, no other text):
+{
+  "allSkills": ["skill1", "skill2", ...],
+  "topSkills": ["skill1", "skill2", "skill3", "skill4", "skill5"],
+  "skills": ["skill1", "skill2", ...],
+  "experience": [
+    {
+      "title": "Software Engineer",
+      "company": "Company Name",
+      "location": "City",
+      "years": 2
+    }
+  ],
+  "education": ["BS Computer Science"],
+  "currentLocation": "City where candidate currently works/lives",
+  "totalYearsExperience": 5,
+  "summary": "Brief 1-line summary"
+}
+
+INSTRUCTIONS:
+1. Extract approximately 10-12 technical skills from the resume (allSkills)
+2. From those, pick the TOP 5 most in-demand skills based on current job market (topSkills)
+   - Prioritize skills with highest number of job openings (e.g., Python, JavaScript, React, AWS, SQL)
+   - Consider skills that are trending in 2024-2026
+   - Avoid niche or outdated technologies for topSkills
+3. The "skills" array should be same as "allSkills" for backward compatibility
+4. Extract current location from the resume (most recent job or address)`;
+
+    const userPrompt = `Parse this resume. Extract about 10-12 skills, then identify the TOP 5 most job-market-demanded skills from those:
+
+${resumeText}`;
+
+    try {
+        const response = await fetch(API.PERPLEXITY, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: API.PERPLEXITY_MODEL,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.1,
+                max_tokens: 2048
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'API request failed');
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content || '';
+
+        return extractResumeJSON(content);
+    } catch (error) {
+        console.error('Resume parsing error:', error);
+        throw error;
+    }
+};
+
+/**
+ * Extract and parse resume JSON from AI response
+ * @param {string} content - Raw AI response
+ * @returns {Object} Parsed resume data
+ */
+const extractResumeJSON = (content) => {
+    let cleaned = content
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim();
+
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        return { skills: [], experience: [], education: [], totalYearsExperience: 0, summary: '' };
+    }
+
+    try {
+        return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+        console.warn('Resume JSON parse failed:', e);
+        return { skills: [], experience: [], education: [], totalYearsExperience: 0, summary: '' };
+    }
+};
+
+/**
+ * Search for jobs matching resume skills
+ * @param {string} companyName - Company to search
+ * @param {Array} skills - Skills from resume to match
+ * @param {string} candidateLocation - Candidate's current location for proximity sorting
+ * @param {string} timeRange - Time filter: week, month, quarter, year, all
+ * @returns {Promise<Object>} Job search results with match scores
+ */
+export const searchJobsWithResume = async (companyName, skills, candidateLocation = '', timeRange = 'month') => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error('Perplexity API key not configured');
+    }
+
+    const skillsList = skills.slice(0, 10).join(', ');
+    const topSkills = skills.slice(0, 5).join('+');
+    const encodedCompany = encodeURIComponent(companyName);
+    const encodedLocation = candidateLocation ? encodeURIComponent(candidateLocation) : '';
+
+    // Time filter for Google
+    const timeFilters = {
+        week: '&tbs=qdr:w',
+        month: '&tbs=qdr:m',
+        quarter: '&tbs=qdr:m3',
+        year: '&tbs=qdr:y',
+        all: ''
+    };
+    const timeFilter = timeFilters[timeRange] || '&tbs=qdr:m';
+
+    const systemPrompt = `You are a job search assistant. Generate optimized Google search links to find LinkedIn jobs matching the candidate's skills at the specified company.
+
+CANDIDATE SKILLS: ${skillsList}
+${candidateLocation ? `CANDIDATE LOCATION: ${candidateLocation}` : ''}
+
+Create Google search URLs that will find relevant LinkedIn content. Each URL should be properly formatted like:
+https://www.google.com/search?q=SEARCH_TERMS
+
+OUTPUT FORMAT (return ONLY this JSON, no other text):
+{
+  "company": "${companyName}",
+  "candidateLocation": "${candidateLocation || 'Unknown'}",
+  "candidateSkills": ${JSON.stringify(skills.slice(0, 10))},
+  "searchLinks": [
+    {
+      "title": "Jobs matching your skills at ${companyName}",
+      "description": "LinkedIn jobs with ${skills[0] || 'your skills'}",
+      "googleSearchUrl": "https://www.google.com/search?q=site:linkedin.com/jobs+${encodedCompany}+${topSkills}",
+      "icon": "💼",
+      "location": "${candidateLocation || 'All locations'}",
+      "distanceKm": 0
+    },
+    {
+      "title": "Hiring posts from ${companyName} employees",
+      "description": "We're hiring posts mentioning your skills",
+      "googleSearchUrl": "https://www.google.com/search?q=site:linkedin.com+${encodedCompany}+hiring+${encodeURIComponent(skills[0] || '')}",
+      "icon": "📢",
+      "location": "${candidateLocation || 'All'}",
+      "distanceKm": 0
+    },
+    {
+      "title": "Referral opportunities at ${companyName}",
+      "description": "Employees looking to refer candidates",
+      "googleSearchUrl": "https://www.google.com/search?q=site:linkedin.com+${encodedCompany}+referral+${encodedLocation}",
+      "icon": "🤝",
+      "location": "${candidateLocation || 'All'}",
+      "distanceKm": 0
+    },
+    ${candidateLocation ? `{
+      "title": "Jobs in ${candidateLocation}",
+      "description": "Positions at ${companyName} near you",
+      "googleSearchUrl": "https://www.google.com/search?q=site:linkedin.com/jobs+${encodedCompany}+${encodedLocation}",
+      "icon": "📍",
+      "location": "${candidateLocation}",
+      "distanceKm": 0
+    },` : ''}
+    {
+      "title": "${companyName} on Naukri.com",
+      "description": "Jobs on India's top job portal",
+      "googleSearchUrl": "https://www.google.com/search?q=site:naukri.com+${encodedCompany}+${topSkills}",
+      "icon": "🇮🇳",
+      "location": "India",
+      "distanceKm": 0
+    }
+  ],
+  "hiringStatus": "Check the search results for current openings"
+}
+
+Make the search queries specific to the candidate's skills. Include skill keywords in search URLs where relevant.`;
+
+    const userPrompt = `Create Google search links to find ${companyName} jobs matching these skills: ${skillsList}
+${candidateLocation ? `\nCandidate is in ${candidateLocation}.` : ''}
+
+Include searches for:
+1. LinkedIn Jobs with skill keywords
+2. Employee hiring posts
+3. Referral requests
+${candidateLocation ? `4. Jobs in ${candidateLocation}` : ''}
+5. Naukri.com jobs`;
+
+    try {
+        const response = await fetch(API.PERPLEXITY, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: API.PERPLEXITY_MODEL,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.2,
+                max_tokens: 3000
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'API request failed');
+        }
+
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content || '';
+
+        return extractJobSearchJSON(content);
+    } catch (error) {
+        console.error('Job search with resume error:', error);
+        throw error;
+    }
+};
+
+/**
+ * Save resume skills to localStorage
+ * @param {Object} resumeData - Parsed resume data
+ */
+export const saveResumeData = (resumeData) => {
+    localStorage.setItem('resumeData', JSON.stringify(resumeData));
+};
+
+/**
+ * Get saved resume data from localStorage
+ * @returns {Object|null} Saved resume data or null
+ */
+export const getResumeData = () => {
+    const data = localStorage.getItem('resumeData');
+    return data ? JSON.parse(data) : null;
+};
+
+/**
+ * Clear saved resume data
+ */
+export const clearResumeData = () => {
+    localStorage.removeItem('resumeData');
+};
+
 export default {
     getApiKey,
     saveApiKey,
-    parseWithAI
+    parseWithAI,
+    searchJobPosts,
+    parseResume,
+    searchJobsWithResume,
+    saveResumeData,
+    getResumeData,
+    clearResumeData
 };
