@@ -23,7 +23,14 @@ const init = async () => {
     setupEventListeners();
 
     // Always fetch from Firebase and show directory
+    // Always fetch from Firebase and show directory
     await Handlers.initializeData(state);
+
+    // Apply global settings
+    if (localStorage.getItem('editMode') === 'true') {
+        document.body.classList.add('edit-mode');
+    }
+
     UI.showView('viewDirectory', renderDirectory);
 };
 
