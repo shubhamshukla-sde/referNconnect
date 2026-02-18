@@ -104,6 +104,53 @@ const deduplicateDatabase = async () => {
 };
 
 /**
+ * Toggle phone number visibility for all employees
+ * Uses button label to determine action: Lock → hide phones, Unlock → show phones
+ */
+const togglePhoneLock = async () => {
+    const btn = document.getElementById('btnLockPhones');
+    // Determine action from button: if it says "Lock", we need to lock (hide)
+    const shouldLock = btn?.textContent?.includes('Lock Phones');
+    const action = shouldLock ? 'Locking' : 'Unlocking';
+
+    setStatus('processing', `${action} phones...`);
+    log(`${action} all phone numbers...`, 'processing');
+
+    try {
+        const companies = await FirebaseService.getAll();
+        let count = 0;
+
+        for (const company of companies) {
+            if (!company.employees || company.employees.length === 0) continue;
+
+            const updatedEmployees = company.employees.map(emp => {
+                if (emp.phone) {
+                    count++;
+                    return { ...emp, phoneLocked: shouldLock };
+                }
+                return emp;
+            });
+
+            await FirebaseService.updateCompany(company.id, { employees: updatedEmployees });
+        }
+
+        // Sync local cache
+        const allData = await FirebaseService.getAll();
+        Storage.save(allData);
+
+        // Flip button label
+        if (btn) btn.innerHTML = shouldLock ? '🔓 Unlock Phones' : '🔒 Lock Phones';
+
+        log(`Done! ${shouldLock ? 'Locked' : 'Unlocked'} ${count} phone numbers`, 'success');
+        setStatus('success', shouldLock ? 'Phones Hidden' : 'Phones Visible');
+    } catch (error) {
+        console.error('Toggle phone lock error:', error);
+        log(`Error: ${error.message}`, 'error');
+        setStatus('error', 'Toggle Failed');
+    }
+};
+
+/**
  * Setup event listeners
  */
 const setupEventListeners = () => {
@@ -143,6 +190,9 @@ const setupEventListeners = () => {
     } else {
         console.error('CRITICAL: btnDeduplicate not found in DOM');
     }
+
+    // LOCK PHONES BUTTON
+    document.getElementById('btnLockPhones')?.addEventListener('click', togglePhoneLock);
 
     // Edit Mode Toggle
     const toggleEditMode = document.getElementById('toggleEditMode');
@@ -263,24 +313,34 @@ const importToFirebase = async () => {
             if (existingMap.has(key)) {
                 const existingCompany = existingMap.get(key);
                 console.log(`Found existing company: ${existingCompany.name} with ID: ${existingCompany.id}`);
+                // Build the full updated employee list in memory
                 const employeeList = [...(existingCompany.employees || [])];
 
-                for (const newEmp of company.employees) {
+                for (const newEmp of (company.employees || [])) {
                     const match = findMatchingEmployee(employeeList, newEmp);
 
                     if (match) {
+                        // Merge and replace in-place in the array
                         const mergedEmp = mergeEmployeeData(match, newEmp);
-                        console.log(`Updating existing employee: ${mergedEmp.firstName} ${mergedEmp.lastName} (ID: ${match.id}) in company: ${existingCompany.id}`);
-                        await FirebaseService.updateEmployee(existingCompany.id, match.id, mergedEmp);
+                        // Ensure the merged employee keeps the existing ID (or gets one)
+                        mergedEmp.id = match.id || mergedEmp.id || generateId();
+                        const idx = employeeList.indexOf(match);
+                        employeeList[idx] = mergedEmp;
+                        console.log(`Merged employee: ${mergedEmp.firstName} ${mergedEmp.lastName} | phone: ${mergedEmp.phone}`);
                         employeesUpdated++;
                         log(`Updated: ${mergedEmp.firstName} ${mergedEmp.lastName}`, 'info');
                     } else {
-                        console.log(`Adding new employee to existing company: ${existingCompany.id}`);
-                        await FirebaseService.addEmployee(existingCompany.id, newEmp);
+                        // Ensure new employee has an ID
+                        const newEmployee = { ...newEmp, id: newEmp.id || generateId() };
+                        employeeList.push(newEmployee);
                         updated++;
-                        log(`Added: ${newEmp.firstName} ${newEmp.lastName}`, 'info');
+                        log(`Added: ${newEmployee.firstName} ${newEmployee.lastName}`, 'info');
                     }
                 }
+
+                // Single write per company with the full updated employee list
+                await FirebaseService.updateCompany(existingCompany.id, { employees: employeeList });
+                console.log(`✅ Wrote ${employeeList.length} employees for ${existingCompany.name}`);
             } else {
                 console.log(`Creating new company: ${company.name}`);
                 await FirebaseService.addCompany(company);
@@ -303,10 +363,23 @@ const importToFirebase = async () => {
 /**
  * Initialize admin page
  */
-const init = () => {
+const init = async () => {
     console.log('Initializing Admin script...');
     setupEventListeners();
     loadApiKey();
+
+    // Sync Lock Phones button label with current Firebase state
+    try {
+        const companies = await FirebaseService.getAll();
+        const anyLocked = companies.some(c =>
+            (c.employees || []).some(emp => emp.phoneLocked)
+        );
+        const btn = document.getElementById('btnLockPhones');
+        if (btn) btn.innerHTML = anyLocked ? '🔓 Unlock Phones' : '🔒 Lock Phones';
+    } catch (e) {
+        console.warn('Could not sync phone lock state:', e.message);
+    }
+
     log('Admin panel ready', 'info');
 };
 
