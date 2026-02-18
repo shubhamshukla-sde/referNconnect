@@ -9,95 +9,290 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles/main.css">
     <style>
+        /* ─── Admin Layout ─── */
         .admin-container {
             max-width: 900px;
             margin: 0 auto;
         }
 
+        /* ─── Header ─── */
         .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--border);
         }
 
-        .input-section {
-            margin-bottom: 2rem;
+        .admin-title {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
         }
 
-        .data-textarea {
-            width: 100%;
-            min-height: 200px;
+        .admin-subtitle {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
+
+        /* ─── Toolbar (header buttons) ─── */
+        .admin-toolbar {
+            display: flex;
+            gap: 0.6rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem 0.9rem;
+            border-radius: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s var(--transition-smooth);
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-height: 36px;
+        }
+
+        .toolbar-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .toolbar-btn:active {
+            transform: scale(0.97);
+        }
+
+        .toolbar-btn--lock {
+            background: rgba(234, 179, 8, 0.08);
+            color: #facc15;
+            border-color: rgba(234, 179, 8, 0.2);
+        }
+
+        .toolbar-btn--lock:hover {
+            background: rgba(234, 179, 8, 0.15);
+            border-color: rgba(234, 179, 8, 0.4);
+        }
+
+        .toolbar-btn--danger {
+            background: rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .toolbar-btn--danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .toolbar-btn--back {
+            background: var(--surface);
+            color: var(--text-dim);
+            border-color: var(--border);
+            text-decoration: none;
+        }
+
+        .toolbar-btn--back:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Edit mode toggle */
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            user-select: none;
+            padding: 0.5rem 0.6rem;
+            border-radius: 0.6rem;
+            transition: color 0.2s;
+        }
+
+        .toggle-label:hover {
+            color: var(--text);
+        }
+
+        .toggle-label input {
+            accent-color: var(--primary);
+            width: 15px;
+            height: 15px;
+        }
+
+        /* ─── Section Cards ─── */
+        .admin-card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            padding: 1rem;
-            resize: vertical;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: var(--glass);
         }
 
-        .data-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
-
-        .btn-ai {
-            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+        .admin-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .btn-ai:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        /* ─── API Key ─── */
+        .api-key-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
         }
 
-        .preview-section {
-            margin-top: 2rem;
+        .api-key-row input {
+            flex: 1;
+            min-width: 0;
         }
 
-        .preview-card {
-            background: var(--surface);
+        .help-text {
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            margin-top: 0.6rem;
+            line-height: 1.5;
+        }
+
+        .help-text a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* ─── Data Input ─── */
+        .tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.45rem 0.9rem;
+            background: transparent;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 0.5rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--text);
+        }
+
+        .data-textarea {
+            width: 100%;
+            min-height: 180px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text);
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            padding: 1rem;
+            resize: vertical;
+            line-height: 1.6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .data-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .data-textarea::placeholder {
+            color: var(--text-dim);
+            opacity: 0.7;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
             margin-top: 1rem;
         }
 
+        .btn-upload {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.35);
+        }
+
+        /* Status Badge */
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.78rem;
             font-weight: 500;
+            margin-left: auto;
         }
 
         .status-idle {
-            background: var(--surface);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-dim);
         }
 
         .status-processing {
-            background: rgba(99, 102, 241, 0.2);
+            background: rgba(99, 102, 241, 0.15);
             color: var(--primary);
             animation: pulse 2s infinite;
         }
 
         .status-success {
-            background: rgba(34, 197, 94, 0.2);
+            background: rgba(34, 197, 94, 0.15);
             color: #22c55e;
         }
 
         .status-error {
-            background: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.15);
             color: #ef4444;
         }
 
@@ -113,72 +308,187 @@
             }
         }
 
+        /* ─── Preview Section ─── */
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .preview-card {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        /* ─── Tables ─── */
         .parsed-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.85rem;
+            margin-top: 0.75rem;
+            font-size: 0.82rem;
         }
 
         .parsed-table th,
         .parsed-table td {
-            padding: 0.75rem;
+            padding: 0.65rem 0.75rem;
             text-align: left;
             border-bottom: 1px solid var(--border);
+            white-space: nowrap;
         }
 
         .parsed-table th {
             color: var(--text-dim);
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
         }
 
-        .api-key-section {
-            margin-bottom: 2rem;
+        .parsed-table td {
+            color: var(--text);
         }
 
-        .api-key-input {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
+        .parsed-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
         }
 
-        .api-key-input input {
-            flex: 1;
-        }
-
-        .help-text {
+        /* ─── Activity Log ─── */
+        .log-content {
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.78rem;
             color: var(--text-dim);
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.8;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
         }
 
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+        .log-content::-webkit-scrollbar {
+            width: 4px;
         }
 
-        .tab {
-            padding: 0.5rem 1rem;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-dim);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
+        .log-content::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .tab.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+        .log-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
         }
 
-        .tab:hover:not(.active) {
-            border-color: var(--primary);
+        /* ─── Mobile Responsive ─── */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1rem !important;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .admin-title {
+                font-size: 1.4rem;
+            }
+
+            .admin-toolbar {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .toolbar-btn {
+                flex: 1 1 auto;
+                min-width: 0;
+                justify-content: center;
+                font-size: 0.75rem;
+                padding: 0.5rem 0.6rem;
+            }
+
+            .toolbar-btn--back {
+                flex-basis: 100%;
+                order: 10;
+            }
+
+            .admin-card {
+                padding: 1.25rem;
+            }
+
+            .api-key-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .api-key-row .btn {
+                width: 100%;
+            }
+
+            .action-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-row .btn,
+            .action-row .btn-upload {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .status-badge {
+                margin-left: 0;
+                align-self: flex-start;
+            }
+
+            .preview-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .preview-header .btn {
+                width: 100%;
+            }
+
+            .parsed-table th,
+            .parsed-table td {
+                padding: 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .data-textarea {
+                min-height: 150px;
+                font-size: 0.78rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .admin-title {
+                font-size: 1.2rem;
+            }
+
+            .toolbar-btn {
+                font-size: 0.7rem;
+                padding: 0.45rem 0.5rem;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.7rem;
+                flex-shrink: 0;
+            }
         }
     </style>
 </head>
@@ -188,44 +498,37 @@
         <!-- Header -->
         <header class="admin-header">
             <div>
-                <h1
-                    style="background: linear-gradient(135deg, var(--primary), var(--accent)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Admin Panel
-                </h1>
-                <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem;">
-                    AI-Powered Data Import
-                </p>
+                <h1 class="admin-title">Admin Panel</h1>
+                <p class="admin-subtitle">AI-Powered Data Import</p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <label
-                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-dim); font-size: 0.9rem;">
-                    <input type="checkbox" id="toggleEditMode" style="accent-color: var(--primary);">
-                    Enable Edit Mode
+            <div class="admin-toolbar">
+                <label class="toggle-label">
+                    <input type="checkbox" id="toggleEditMode">
+                    Edit Mode
                 </label>
-                <button class="btn btn-secondary" id="btnLockPhones"
-                    style="background: rgba(234, 179, 8, 0.1); color: #eab308; border-color: rgba(234, 179, 8, 0.2);">🔒
-                    Lock Phones</button>
-                <button class="btn btn-secondary" id="btnDeduplicate"
-                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">🧹
-                    Clean Database</button>
-                <a href="../index.html" class="btn btn-secondary">← Back to Directory</a>
+                <button class="toolbar-btn toolbar-btn--lock" id="btnLockPhones">🔒 Lock Phones</button>
+                <button class="toolbar-btn toolbar-btn--danger" id="btnDeduplicate">🧹 Clean DB</button>
+                <a href="../index.html" class="toolbar-btn toolbar-btn--back">← Directory</a>
             </div>
         </header>
 
         <!-- API Key Section -->
-        <div class="card api-key-section">
-            <h3 style="margin-bottom: 1rem;">🔑 Perplexity API Key</h3>
-            <div class="api-key-input">
+        <div class="admin-card">
+            <h3>🔑 API Key</h3>
+            <div class="api-key-row">
                 <input type="password" id="apiKeyInput" class="input" placeholder="pplx-xxxxxxxxxxxxxxxx">
                 <button class="btn btn-secondary" id="btnSaveKey">Save</button>
             </div>
-            <p class="help-text">Get your API key from <a href="https://www.perplexity.ai/settings/api" target="_blank"
-                    style="color: var(--primary);">perplexity.ai/settings/api</a>. Key is stored locally.</p>
+            <p class="help-text">
+                Get your key from
+                <a href="https://www.perplexity.ai/settings/api" target="_blank">perplexity.ai/settings/api</a>.
+                Stored locally in your browser.
+            </p>
         </div>
 
         <!-- Data Input Section -->
-        <div class="card input-section">
-            <h3 style="margin-bottom: 1rem;">📥 Import Data</h3>
+        <div class="admin-card">
+            <h3>📥 Import Data</h3>
 
             <div class="tabs">
                 <button class="tab active" data-type="text">Plain Text</button>
@@ -242,32 +545,29 @@ Example formats:
 
 AI will intelligently parse and structure the data."></textarea>
 
-            <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <label class="btn btn-secondary" style="cursor: pointer;">
+            <div class="action-row">
+                <label class="btn btn-secondary btn-upload">
                     📁 Upload File
                     <input type="file" id="fileUpload" hidden accept=".csv,.json,.txt">
                 </label>
-                <button class="btn btn-ai" id="btnProcessAI">
-                    ✨ Process with AI
-                </button>
+                <button class="btn btn-ai" id="btnProcessAI">✨ Process with AI</button>
                 <span id="statusBadge" class="status-badge status-idle">Ready</span>
             </div>
         </div>
 
         <!-- Preview Section -->
-        <div class="card preview-section" id="previewSection" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>📋 Parsed Data Preview</h3>
+        <div class="admin-card" id="previewSection" style="display: none;">
+            <div class="preview-header">
+                <h3 style="margin-bottom: 0;">📋 Parsed Preview</h3>
                 <button class="btn" id="btnImport">Import to Firebase</button>
             </div>
             <div id="previewContent" class="preview-card"></div>
         </div>
 
         <!-- Log Section -->
-        <div class="card" style="margin-top: 2rem;">
-            <h3 style="margin-bottom: 1rem;">📝 Activity Log</h3>
-            <div id="logContent"
-                style="font-family: monospace; font-size: 0.8rem; color: var(--text-dim); max-height: 200px; overflow-y: auto;">
+        <div class="admin-card">
+            <h3>📝 Activity Log</h3>
+            <div id="logContent" class="log-content">
                 <div>Waiting for input...</div>
             </div>
         </div>
