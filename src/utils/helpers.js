@@ -86,6 +86,7 @@ export const isEmpty = (value) => {
         return v === '' || v === 'n/a' || v === '-' ||
             v === 'no email' || v === 'no phone' ||
             v === 'unknown' || v === 'no email found' ||
+            v.includes('not revealed') ||
             v.includes('no phone');
     }
     if (Array.isArray(value)) return value.length === 0;
@@ -137,9 +138,19 @@ export const mergeEmployeeData = (target, source) => {
         if (isEmpty(val1) && !isEmpty(val2)) {
             merged[field] = val2;
         } else if (!isEmpty(val1) && !isEmpty(val2)) {
-            // Prefer the longer/more detailed string (except for names where we keep target)
-            if (field !== 'firstName' && field !== 'lastName' && String(val2).length > String(val1).length) {
-                merged[field] = val2;
+            // For phone: prefer new (source) value since user is importing updated data
+            if (field === 'phone') {
+                const digits1 = String(val1).replace(/\D/g, '');
+                const digits2 = String(val2).replace(/\D/g, '');
+                // Update if digits are different (new data takes priority)
+                if (digits2 !== digits1) {
+                    merged[field] = val2;
+                }
+            } else {
+                // Prefer the longer/more detailed string (except for names where we keep target)
+                if (field !== 'firstName' && field !== 'lastName' && String(val2).length > String(val1).length) {
+                    merged[field] = val2;
+                }
             }
         }
     });
