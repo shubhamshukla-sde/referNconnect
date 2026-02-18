@@ -61,7 +61,7 @@ export const createEmployeeCard = (emp, company) => {
             
             <div style="color: var(--text-dim); font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">📧 <span>${emp.email || 'No email'}</span></div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">📱 <span>${emp.phone || 'No phone'}</span></div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">📱 <span>${emp.phoneLocked ? '🔒 Hidden' : (emp.phone || 'No phone')}</span></div>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">📍 <span>${emp.location || 'Unknown'}</span></div>
             </div>
 

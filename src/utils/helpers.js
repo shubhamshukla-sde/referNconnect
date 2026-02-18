@@ -138,11 +138,12 @@ export const mergeEmployeeData = (target, source) => {
         if (isEmpty(val1) && !isEmpty(val2)) {
             merged[field] = val2;
         } else if (!isEmpty(val1) && !isEmpty(val2)) {
-            // Special handling for phone: prefer more digits
+            // For phone: prefer new (source) value since user is importing updated data
             if (field === 'phone') {
-                const digits1 = String(val1).replace(/\D/g, '').length;
-                const digits2 = String(val2).replace(/\D/g, '').length;
-                if (digits2 > digits1) {
+                const digits1 = String(val1).replace(/\D/g, '');
+                const digits2 = String(val2).replace(/\D/g, '');
+                // Update if digits are different (new data takes priority)
+                if (digits2 !== digits1) {
                     merged[field] = val2;
                 }
             } else {
