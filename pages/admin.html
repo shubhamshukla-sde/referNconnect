@@ -501,14 +501,19 @@
                 <h1 class="admin-title">Admin Panel</h1>
                 <p class="admin-subtitle">AI-Powered Data Import</p>
             </div>
-            <div class="admin-toolbar">
-                <label class="toggle-label">
-                    <input type="checkbox" id="toggleEditMode">
-                    Edit Mode
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <label
+                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-dim); font-size: 0.9rem;">
+                    <input type="checkbox" id="toggleEditMode" style="accent-color: var(--primary);">
+                    Enable Edit Mode
                 </label>
-                <button class="toolbar-btn toolbar-btn--lock" id="btnLockPhones">🔒 Lock Phones</button>
-                <button class="toolbar-btn toolbar-btn--danger" id="btnDeduplicate">🧹 Clean DB</button>
-                <a href="../index.html" class="toolbar-btn toolbar-btn--back">← Directory</a>
+                <button class="btn btn-secondary" id="btnLockPhones"
+                    style="background: rgba(234, 179, 8, 0.1); color: #eab308; border-color: rgba(234, 179, 8, 0.2);">🔒
+                    Lock Phones</button>
+                <button class="btn btn-secondary" id="btnDeduplicate"
+                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">🧹
+                    Clean Database</button>
+                <a href="../index.html" class="btn btn-secondary">← Back to Directory</a>
             </div>
         </header>
 
