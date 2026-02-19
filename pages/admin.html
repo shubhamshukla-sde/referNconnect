@@ -9,165 +9,336 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles/main.css">
     <style>
+        /* ══════════════════════════════════
+           ADMIN PAGE — RESPONSIVE STYLES
+           ══════════════════════════════════ */
+
+        /* ─── Layout ─── */
         .admin-container {
-            max-width: 900px;
+            max-width: 860px;
             margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
 
+        /* ─── Header ─── */
         .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 1.25rem;
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
             border-bottom: 1px solid var(--border);
         }
 
-        .input-section {
-            margin-bottom: 2rem;
+        .admin-title {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
         }
 
-        .data-textarea {
-            width: 100%;
-            min-height: 200px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-family: 'Monaco', 'Consolas', monospace;
-            font-size: 0.85rem;
-            padding: 1rem;
-            resize: vertical;
+        .admin-subtitle {
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin-top: 0.15rem;
         }
 
-        .data-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-        }
-
-        .btn-ai {
-            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+        /* ─── Toolbar ─── */
+        .admin-toolbar {
             display: flex;
-            align-items: center;
             gap: 0.5rem;
+            align-items: center;
         }
 
-        .btn-ai:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
-        }
-
-        .preview-section {
-            margin-top: 2rem;
-        }
-
-        .preview-card {
-            background: var(--surface);
+        .toolbar-btn {
+            padding: 0.45rem 0.8rem;
+            border-radius: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .status-badge {
+            background: var(--surface);
+            color: var(--text-dim);
+            transition: all 0.2s var(--transition-smooth);
+            white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
+            gap: 0.35rem;
+            min-height: 38px;
+            text-decoration: none;
         }
 
-        .status-idle {
+        .toolbar-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .toolbar-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* ─── Dropdown ─── */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-trigger {
+            padding: 0.45rem 0.7rem;
+            border-radius: 0.6rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
             background: var(--surface);
             color: var(--text-dim);
+            transition: all 0.2s var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            min-height: 38px;
         }
 
-        .status-processing {
-            background: rgba(99, 102, 241, 0.2);
-            color: var(--primary);
-            animation: pulse 2s infinite;
+        .dropdown-trigger:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .status-success {
-            background: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 200px;
+            background: rgba(20, 20, 25, 0.97);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.4rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px) scale(0.97);
+            transition: all 0.2s var(--transition-smooth);
         }
 
-        .status-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+        .dropdown.open .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.6;
-            }
-        }
-
-        .parsed-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-        }
-
-        .parsed-table th,
-        .parsed-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .parsed-table th {
-            color: var(--text-dim);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-        }
-
-        .api-key-section {
-            margin-bottom: 2rem;
-        }
-
-        .api-key-input {
+        .dropdown-item {
             display: flex;
-            gap: 1rem;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: all 0.15s;
+            text-align: left;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+        }
+
+        .dropdown-item--lock {
+            color: #facc15;
+        }
+
+        .dropdown-item--lock:hover {
+            background: rgba(234, 179, 8, 0.1);
+            color: #facc15;
+        }
+
+        .dropdown-item--danger {
+            color: #f87171;
+        }
+
+        .dropdown-item--danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.3rem 0.5rem;
+        }
+
+        /* ─── Toggle Switch ─── */
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 0.78rem;
+            font-weight: 500;
+            user-select: none;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.6rem;
+            transition: color 0.2s;
+        }
+
+        .toggle-label:hover {
+            color: var(--text);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 2px;
+            bottom: 2px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            transition: transform 0.25s, background 0.25s;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: rgba(129, 140, 248, 0.3);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(16px);
+            background: var(--primary);
+        }
+
+        /* ─── Section Cards ─── */
+        .admin-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            backdrop-filter: var(--glass);
+            transition: border-color 0.2s;
+        }
+
+        .admin-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-heading {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text);
+        }
+
+        .card-heading .icon {
+            font-size: 1.1rem;
+        }
+
+        /* ─── API Key ─── */
+        .api-key-row {
+            display: flex;
+            gap: 0.75rem;
             align-items: center;
         }
 
-        .api-key-input input {
+        .provider-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            vertical-align: middle;
+            margin-left: 0.4rem;
+        }
+
+        .provider-badge.perplexity {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+
+        .provider-badge.gemini {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .provider-badge.none {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
+        .api-key-row input {
             flex: 1;
+            min-width: 0;
         }
 
         .help-text {
             color: var(--text-dim);
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
+            font-size: 0.76rem;
+            margin-top: 0.6rem;
+            line-height: 1.5;
         }
 
+        .help-text a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .help-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* ─── Tabs ─── */
         .tabs {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.35rem;
             margin-bottom: 1rem;
         }
 
         .tab {
-            padding: 0.5rem 1rem;
-            background: var(--surface);
+            padding: 0.4rem 0.85rem;
+            background: transparent;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 0.5rem;
             color: var(--text-dim);
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             transition: all 0.2s;
         }
 
@@ -179,6 +350,318 @@
 
         .tab:hover:not(.active) {
             border-color: var(--primary);
+            color: var(--text);
+        }
+
+        /* ─── Textarea ─── */
+        .data-textarea {
+            width: 100%;
+            min-height: 180px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text);
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            padding: 1rem;
+            resize: vertical;
+            line-height: 1.6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .data-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .data-textarea::placeholder {
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+        /* ─── Action Row ─── */
+        .action-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn-upload {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        /* ─── Status Badge ─── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .status-idle {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+        }
+
+        .status-processing {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.55;
+            }
+        }
+
+        /* ─── Preview ─── */
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .preview-card {
+            background: rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ─── Tables ─── */
+        .parsed-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            font-size: 0.82rem;
+        }
+
+        .parsed-table th,
+        .parsed-table td {
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .parsed-table th {
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.68rem;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .parsed-table td {
+            color: var(--text);
+        }
+
+        .parsed-table tbody tr {
+            transition: background 0.15s;
+        }
+
+        .parsed-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* ─── Activity Log ─── */
+        .log-content {
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.76rem;
+            color: var(--text-dim);
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.8;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 0.6rem;
+        }
+
+        .log-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .log-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* ══════════════════════════════════
+           RESPONSIVE: TABLET (≤ 768px)
+           ══════════════════════════════════ */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 1.25rem 1rem;
+            }
+
+            .admin-title {
+                font-size: 1.4rem;
+            }
+
+            .admin-card {
+                padding: 1.25rem;
+            }
+
+            .api-key-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .api-key-row .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .action-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-row .btn,
+            .action-row .btn-upload {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .status-badge {
+                margin-left: 0;
+                align-self: flex-start;
+            }
+
+            .preview-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .preview-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .data-textarea {
+                min-height: 150px;
+                font-size: 0.78rem;
+            }
+        }
+
+        /* ══════════════════════════════════
+           RESPONSIVE: SMALL PHONE (≤ 480px)
+           ══════════════════════════════════ */
+        @media (max-width: 480px) {
+            .admin-container {
+                padding: 1rem 0.75rem;
+            }
+
+            .admin-title {
+                font-size: 1.25rem;
+            }
+
+            .admin-subtitle {
+                font-size: 0.75rem;
+            }
+
+            .admin-card {
+                padding: 1rem;
+                border-radius: 0.75rem;
+            }
+
+            .card-heading {
+                font-size: 0.88rem;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .tab {
+                font-size: 0.75rem;
+                padding: 0.38rem 0.7rem;
+                flex-shrink: 0;
+            }
+
+            .parsed-table th,
+            .parsed-table td {
+                padding: 0.45rem 0.5rem;
+                font-size: 0.72rem;
+            }
+
+            .data-textarea {
+                min-height: 130px;
+                padding: 0.75rem;
+            }
+
+            .log-content {
+                font-size: 0.7rem;
+                max-height: 160px;
+                padding: 0.5rem;
+            }
+        }
+
+        /* ══════════════════════════════════
+           SAFE AREA (notched devices)
+           ══════════════════════════════════ */
+        @supports (padding: max(0px)) {
+            .admin-container {
+                padding-left: max(1rem, env(safe-area-inset-left));
+                padding-right: max(1rem, env(safe-area-inset-right));
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
@@ -188,44 +671,60 @@
         <!-- Header -->
         <header class="admin-header">
             <div>
-                <h1
-                    style="background: linear-gradient(135deg, var(--primary), var(--accent)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Admin Panel
-                </h1>
-                <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem;">
-                    AI-Powered Data Import
-                </p>
+                <h1 class="admin-title">Admin Panel</h1>
+                <p class="admin-subtitle">AI-Powered Data Import</p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <label
-                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-dim); font-size: 0.9rem;">
-                    <input type="checkbox" id="toggleEditMode" style="accent-color: var(--primary);">
-                    Enable Edit Mode
-                </label>
-                <button class="btn btn-secondary" id="btnLockPhones"
-                    style="background: rgba(234, 179, 8, 0.1); color: #eab308; border-color: rgba(234, 179, 8, 0.2);">🔒
-                    Lock Phones</button>
-                <button class="btn btn-secondary" id="btnDeduplicate"
-                    style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">🧹
-                    Clean Database</button>
-                <a href="../index.html" class="btn btn-secondary">← Back to Directory</a>
+            <div class="admin-toolbar">
+                <a href="../index.html" class="toolbar-btn">← Back</a>
+                <div class="dropdown" id="settingsDropdown">
+                    <button class="dropdown-trigger" id="settingsToggle">⚙️ Settings</button>
+                    <div class="dropdown-menu">
+                        <label class="dropdown-item">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="toggleEditMode">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            Edit Mode
+                        </label>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item dropdown-item--lock" id="btnLockPhones">🔒 Lock Phones</button>
+                        <button class="dropdown-item dropdown-item--danger" id="btnDeduplicate">🧹 Clean
+                            Database</button>
+                    </div>
+                </div>
             </div>
         </header>
 
         <!-- API Key Section -->
-        <div class="card api-key-section">
-            <h3 style="margin-bottom: 1rem;">🔑 Perplexity API Key</h3>
-            <div class="api-key-input">
-                <input type="password" id="apiKeyInput" class="input" placeholder="pplx-xxxxxxxxxxxxxxxx">
-                <button class="btn btn-secondary" id="btnSaveKey">Save</button>
+        <div class="admin-card">
+            <h3 class="card-heading"><span class="icon">🔑</span> AI Provider Keys <span id="providerBadge"
+                    class="provider-badge"></span></h3>
+            <div class="api-key-row" style="margin-bottom: 0.75rem;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:0.3rem;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); font-weight:500;">Perplexity
+                        (primary)</label>
+                    <input type="password" id="apiKeyInput" class="input" placeholder="pplx-xxxxxxxxxxxxxxxx">
+                </div>
+                <button class="btn btn-secondary" id="btnSaveKey" style="align-self:flex-end;">Save</button>
             </div>
-            <p class="help-text">Get your API key from <a href="https://www.perplexity.ai/settings/api" target="_blank"
-                    style="color: var(--primary);">perplexity.ai/settings/api</a>. Key is stored locally.</p>
+            <div class="api-key-row">
+                <div style="flex:1; display:flex; flex-direction:column; gap:0.3rem;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); font-weight:500;">Gemini (free
+                        fallback)</label>
+                    <input type="password" id="geminiKeyInput" class="input" placeholder="AIzaSy...">
+                </div>
+                <button class="btn btn-secondary" id="btnSaveGeminiKey" style="align-self:flex-end;">Save</button>
+            </div>
+            <p class="help-text" style="margin-top:0.5rem;">
+                Get keys: <a href="https://www.perplexity.ai/settings/api" target="_blank">Perplexity</a> ·
+                <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> (free).
+                Perplexity is preferred when both are set.
+            </p>
         </div>
 
         <!-- Data Input Section -->
-        <div class="card input-section">
-            <h3 style="margin-bottom: 1rem;">📥 Import Data</h3>
+        <div class="admin-card">
+            <h3 class="card-heading"><span class="icon">📥</span> Import Data</h3>
 
             <div class="tabs">
                 <button class="tab active" data-type="text">Plain Text</button>
@@ -242,38 +741,50 @@ Example formats:
 
 AI will intelligently parse and structure the data."></textarea>
 
-            <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <label class="btn btn-secondary" style="cursor: pointer;">
+            <div class="action-row">
+                <label class="btn btn-secondary btn-upload">
                     📁 Upload File
                     <input type="file" id="fileUpload" hidden accept=".csv,.json,.txt">
                 </label>
-                <button class="btn btn-ai" id="btnProcessAI">
-                    ✨ Process with AI
-                </button>
+                <button class="btn btn-ai" id="btnProcessAI">✨ Process with AI</button>
                 <span id="statusBadge" class="status-badge status-idle">Ready</span>
             </div>
         </div>
 
         <!-- Preview Section -->
-        <div class="card preview-section" id="previewSection" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>📋 Parsed Data Preview</h3>
+        <div class="admin-card" id="previewSection" style="display: none;">
+            <div class="preview-header">
+                <h3 class="card-heading" style="margin-bottom: 0;">
+                    <span class="icon">📋</span> Parsed Preview
+                </h3>
                 <button class="btn" id="btnImport">Import to Firebase</button>
             </div>
             <div id="previewContent" class="preview-card"></div>
         </div>
 
         <!-- Log Section -->
-        <div class="card" style="margin-top: 2rem;">
-            <h3 style="margin-bottom: 1rem;">📝 Activity Log</h3>
-            <div id="logContent"
-                style="font-family: monospace; font-size: 0.8rem; color: var(--text-dim); max-height: 200px; overflow-y: auto;">
+        <div class="admin-card">
+            <h3 class="card-heading"><span class="icon">📝</span> Activity Log</h3>
+            <div id="logContent" class="log-content">
                 <div>Waiting for input...</div>
             </div>
         </div>
     </div>
 
+    <script type="module" src="../src/services/auth-guard.js"></script>
     <script type="module" src="../src/admin/admin.js"></script>
+    <script>
+        // Dropdown toggle
+        const toggle = document.getElementById('settingsToggle');
+        const dropdown = document.getElementById('settingsDropdown');
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+        });
+    </script>
 </body>
 
 </html>

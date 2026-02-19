@@ -16,13 +16,16 @@ export const FIREBASE_CONFIG = {
 // API Endpoints
 export const API = {
     PERPLEXITY: 'https://api.perplexity.ai/chat/completions',
-    PERPLEXITY_MODEL: 'sonar'
+    PERPLEXITY_MODEL: 'sonar',
+    GEMINI: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+    GEMINI_MODEL: 'gemini-2.5-flash-lite'
 };
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
     COMPANIES: 'referNconnect_companies',
-    API_KEY: 'perplexity_api_key'
+    API_KEY: 'perplexity_api_key',
+    GEMINI_API_KEY: 'gemini_api_key'
 };
 
 // Field Mappings for data normalization

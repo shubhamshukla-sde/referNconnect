@@ -3,7 +3,7 @@
  * Handles all Firestore database operations for companies and employees
  */
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import {
     getFirestore,
     collection,
@@ -28,8 +28,8 @@ const firebaseConfig = {
     measurementId: "G-GTQJ7GLB4Y"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (safe: re-use existing app if auth-guard loaded first)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const COMPANIES_COLLECTION = 'companies';

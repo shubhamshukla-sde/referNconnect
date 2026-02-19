@@ -8,7 +8,7 @@ import * as UI from '../ui/index.js';
 import * as Handlers from '../handlers/index.js';
 import {
     searchJobPosts,
-    getApiKey,
+    getActiveProvider,
     parseResume,
     searchJobsWithResume,
     saveResumeData,
@@ -319,7 +319,7 @@ const handleParseResume = async () => {
         return;
     }
 
-    if (!getApiKey()) {
+    if (!getActiveProvider()) {
         showApiKeyRequired();
         return;
     }
@@ -390,7 +390,7 @@ const handleParseResume = async () => {
  * Search all jobs without resume matching
  */
 const handleSearchAllJobs = async () => {
-    if (!getApiKey()) {
+    if (!getActiveProvider()) {
         showApiKeyRequired();
         return;
     }
