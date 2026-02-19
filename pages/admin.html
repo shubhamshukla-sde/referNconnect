@@ -277,6 +277,31 @@
             align-items: center;
         }
 
+        .provider-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            vertical-align: middle;
+            margin-left: 0.4rem;
+        }
+
+        .provider-badge.perplexity {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+
+        .provider-badge.gemini {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .provider-badge.none {
+            background: rgba(239, 68, 68, 0.12);
+            color: #f87171;
+        }
+
         .api-key-row input {
             flex: 1;
             min-width: 0;
@@ -672,15 +697,28 @@
 
         <!-- API Key Section -->
         <div class="admin-card">
-            <h3 class="card-heading"><span class="icon">🔑</span> API Key</h3>
-            <div class="api-key-row">
-                <input type="password" id="apiKeyInput" class="input" placeholder="pplx-xxxxxxxxxxxxxxxx">
-                <button class="btn btn-secondary" id="btnSaveKey">Save</button>
+            <h3 class="card-heading"><span class="icon">🔑</span> AI Provider Keys <span id="providerBadge"
+                    class="provider-badge"></span></h3>
+            <div class="api-key-row" style="margin-bottom: 0.75rem;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:0.3rem;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); font-weight:500;">Perplexity
+                        (primary)</label>
+                    <input type="password" id="apiKeyInput" class="input" placeholder="pplx-xxxxxxxxxxxxxxxx">
+                </div>
+                <button class="btn btn-secondary" id="btnSaveKey" style="align-self:flex-end;">Save</button>
             </div>
-            <p class="help-text">
-                Get your key from
-                <a href="https://www.perplexity.ai/settings/api" target="_blank">perplexity.ai/settings/api</a>.
-                Stored locally in your browser.
+            <div class="api-key-row">
+                <div style="flex:1; display:flex; flex-direction:column; gap:0.3rem;">
+                    <label style="font-size:0.75rem; color:var(--text-dim); font-weight:500;">Gemini (free
+                        fallback)</label>
+                    <input type="password" id="geminiKeyInput" class="input" placeholder="AIzaSy...">
+                </div>
+                <button class="btn btn-secondary" id="btnSaveGeminiKey" style="align-self:flex-end;">Save</button>
+            </div>
+            <p class="help-text" style="margin-top:0.5rem;">
+                Get keys: <a href="https://www.perplexity.ai/settings/api" target="_blank">Perplexity</a> ·
+                <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> (free).
+                Perplexity is preferred when both are set.
             </p>
         </div>
 

@@ -3,7 +3,8 @@
  * Handles AI-powered data import and Firebase operations
  */
 
-import { FirebaseService, Storage, getApiKey, saveApiKey, parseWithAI } from '../services/index.js';
+import { FirebaseService, Storage } from '../services/index.js';
+import { getApiKey, saveApiKey, getGeminiKey, saveGeminiKey, getActiveProvider, parseWithAI } from '../services/ai.js';
 import { generateId, findMatchingEmployee, mergeEmployeeData } from '../utils/helpers.js';
 
 // State
@@ -34,15 +35,31 @@ const setStatus = (status, text) => {
 };
 
 /**
- * Load API key from storage
+ * Load API keys from storage & show active provider
  */
-const loadApiKey = () => {
-    const key = getApiKey();
-    if (key) {
+const loadApiKeys = () => {
+    const pKey = getApiKey();
+    if (pKey) {
         const input = document.getElementById('apiKeyInput');
-        if (input) input.value = key;
-        log('API key loaded from storage', 'info');
+        if (input) input.value = pKey;
     }
+    const gKey = getGeminiKey();
+    if (gKey) {
+        const input = document.getElementById('geminiKeyInput');
+        if (input) input.value = gKey;
+    }
+    updateProviderBadge();
+    if (pKey || gKey) log(`AI provider: ${getActiveProvider()?.provider || 'none'}`, 'info');
+};
+
+/** Update provider badge in UI */
+const updateProviderBadge = () => {
+    const badge = document.getElementById('providerBadge');
+    if (!badge) return;
+    const active = getActiveProvider();
+    if (!active) { badge.className = 'provider-badge none'; badge.textContent = 'No key'; }
+    else if (active.provider === 'perplexity') { badge.className = 'provider-badge perplexity'; badge.textContent = '⚡ Perplexity'; }
+    else { badge.className = 'provider-badge gemini'; badge.textContent = '✦ Gemini'; }
 };
 
 /**
@@ -156,12 +173,23 @@ const togglePhoneLock = async () => {
 const setupEventListeners = () => {
     console.log('Setting up event listeners...');
 
-    // API Key
+    // Perplexity API Key
     document.getElementById('btnSaveKey')?.addEventListener('click', () => {
         const key = document.getElementById('apiKeyInput').value.trim();
         if (key) {
             saveApiKey(key);
-            log('API key saved', 'success');
+            log('Perplexity API key saved', 'success');
+            updateProviderBadge();
+        }
+    });
+
+    // Gemini API Key
+    document.getElementById('btnSaveGeminiKey')?.addEventListener('click', () => {
+        const key = document.getElementById('geminiKeyInput').value.trim();
+        if (key) {
+            saveGeminiKey(key);
+            log('Gemini API key saved', 'success');
+            updateProviderBadge();
         }
     });
 
@@ -366,7 +394,7 @@ const importToFirebase = async () => {
 const init = async () => {
     console.log('Initializing Admin script...');
     setupEventListeners();
-    loadApiKey();
+    loadApiKeys();
 
     // Sync Lock Phones button label with current Firebase state
     try {
