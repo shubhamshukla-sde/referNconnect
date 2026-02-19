@@ -179,7 +179,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div id="app" class="container">
         <div class="header-row">
             <div>
                 <h1>🛠️ Advanced Data Architect <span class="badge">v2.1</span></h1>
@@ -217,6 +217,7 @@
         <div id="log"></div>
     </div>
 
+    <script type="module" src="../src/services/auth-guard.js"></script>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
