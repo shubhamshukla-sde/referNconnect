@@ -5,7 +5,7 @@
 
 import { FirebaseService, Storage } from '../services/index.js';
 import { getApiKey, saveApiKey, getGeminiKey, saveGeminiKey, getActiveProvider, parseWithAI } from '../services/ai/index.js';
-import { generateId, findMatchingEmployee, mergeEmployeeData } from '../utils/helpers.js';
+import { generateId, findMatchingEmployee, mergeEmployeeData, encryptPhone, decryptPhone } from '../utils/helpers.js';
 
 // State
 let currentDataType = 'text';
@@ -143,7 +143,8 @@ const togglePhoneLock = async () => {
             const updatedEmployees = company.employees.map(emp => {
                 if (emp.phone) {
                     count++;
-                    return { ...emp, phoneLocked: shouldLock };
+                    const newPhone = shouldLock ? encryptPhone(emp.phone) : decryptPhone(emp.phone);
+                    return { ...emp, phone: newPhone, phoneLocked: shouldLock };
                 }
                 return emp;
             });
