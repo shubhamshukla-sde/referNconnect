@@ -663,6 +663,126 @@
                 padding-bottom: max(1rem, env(safe-area-inset-bottom));
             }
         }
+
+        /* ══════════════════════════════════
+           MODAL - PHONE LOCK
+           ══════════════════════════════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s var(--transition-smooth);
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 480px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95) translateY(10px);
+            transition: all 0.3s var(--transition-smooth);
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .btn-close-modal:hover {
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            appearance: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1rem;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-select option {
+            background: #1e1e24;
+            color: #fff;
+        }
+
+        .modal-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
     </style>
 </head>
 
@@ -687,7 +807,8 @@
                             Edit Mode
                         </label>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item dropdown-item--lock" id="btnLockPhones">🔒 Lock Phones</button>
+                        <button class="dropdown-item dropdown-item--lock" id="btnManagePhones">🔒 Manage Phone
+                            Locks</button>
                         <button class="dropdown-item dropdown-item--danger" id="btnDeduplicate">🧹 Clean
                             Database</button>
                     </div>
@@ -771,9 +892,43 @@ AI will intelligently parse and structure the data."></textarea>
         </div>
     </div>
 
+    <!-- Phone Lock Modal -->
+    <div class="modal-overlay" id="phoneLockModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔐 Manage Phone Locks</h3>
+                <button class="btn-close-modal" id="btnClosePhoneModal">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="lockCompanySelect">Select Company</label>
+                <select class="form-select" id="lockCompanySelect">
+                    <option value="">Loading companies...</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0.5rem;">
+                <label class="form-label" for="lockUserSelect">Select Employee</label>
+                <select class="form-select" id="lockUserSelect" disabled>
+                    <option value="">Select a company first</option>
+                </select>
+            </div>
+
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1.5rem;" id="lockStatusMessage">
+                Choose an employee to see their current lock status.
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="btnCancelPhoneModal">Cancel</button>
+                <button class="btn" id="btnToggleUserLock" disabled
+                    style="background: var(--surface); color: var(--text-dim); border: 1px solid var(--border);">Select
+                    User</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Load CryptoJS for Phone Encryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
     <script type="module" src="../src/services/auth-guard.js"></script>
     <script type="module" src="../src/admin/admin.js"></script>
     <script>

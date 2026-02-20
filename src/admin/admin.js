@@ -121,51 +121,177 @@ const deduplicateDatabase = async () => {
 };
 
 /**
- * Toggle phone number visibility for all employees
- * Uses button label to determine action: Lock → hide phones, Unlock → show phones
+ * ============================================================================
+ * PHONE LOCK MANAGEMENT MODAL
+ * ============================================================================
  */
-const togglePhoneLock = async () => {
-    const btn = document.getElementById('btnLockPhones');
-    // Determine action from button: if it says "Lock", we need to lock (hide)
-    const shouldLock = btn?.textContent?.includes('Lock Phones');
-    const action = shouldLock ? 'Locking' : 'Unlocking';
+let cachedCompanies = [];
+let selectedPhoneCompany = null;
+let selectedPhoneUser = null;
 
-    setStatus('processing', `${action} phones...`);
-    log(`${action} all phone numbers...`, 'processing');
+const initPhoneLockModal = () => {
+    const btnManagePhones = document.getElementById('btnManagePhones');
+    const modal = document.getElementById('phoneLockModal');
+    const btnClose = document.getElementById('btnClosePhoneModal');
+    const btnCancel = document.getElementById('btnCancelPhoneModal');
+    const companySelect = document.getElementById('lockCompanySelect');
+    const userSelect = document.getElementById('lockUserSelect');
+    const toggleBtn = document.getElementById('btnToggleUserLock');
+    const statusMsg = document.getElementById('lockStatusMessage');
+    const dropdownMenu = document.getElementById('settingsDropdown');
 
-    try {
-        const companies = await FirebaseService.getAll();
-        let count = 0;
+    if (!btnManagePhones || !modal) return;
 
-        for (const company of companies) {
-            if (!company.employees || company.employees.length === 0) continue;
+    // Open Modal
+    btnManagePhones.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (dropdownMenu) dropdownMenu.classList.remove('open');
 
-            const updatedEmployees = company.employees.map(emp => {
-                if (emp.phone) {
-                    count++;
-                    const newPhone = shouldLock ? encryptPhone(emp.phone) : decryptPhone(emp.phone);
-                    return { ...emp, phone: newPhone, phoneLocked: shouldLock };
-                }
-                return emp;
+        modal.classList.add('open');
+        companySelect.innerHTML = '<option value="">Loading companies...</option>';
+        userSelect.innerHTML = '<option value="">Select a company first</option>';
+        userSelect.disabled = true;
+        toggleBtn.disabled = true;
+        toggleBtn.textContent = 'Select User';
+        toggleBtn.style.background = 'var(--surface)';
+        toggleBtn.style.color = 'var(--text-dim)';
+        statusMsg.textContent = 'Choose an employee to see their current lock status.';
+
+        try {
+            cachedCompanies = await FirebaseService.getAll();
+            if (cachedCompanies.length === 0) {
+                companySelect.innerHTML = '<option value="">No companies found</option>';
+                return;
+            }
+
+            companySelect.innerHTML = '<option value="">-- Choose a Company --</option>';
+            cachedCompanies.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                companySelect.appendChild(opt);
             });
+        } catch (err) {
+            console.error('Error fetching companies for modal:', err);
+            companySelect.innerHTML = '<option value="">Error loading companies</option>';
+        }
+    });
 
-            await FirebaseService.updateCompany(company.id, { employees: updatedEmployees });
+    // Close Modal handers
+    const closeModal = () => modal.classList.remove('open');
+    btnClose.addEventListener('click', closeModal);
+    btnCancel.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Company Selection Changed
+    companySelect.addEventListener('change', (e) => {
+        const companyId = e.target.value;
+        userSelect.innerHTML = '<option value="">-- Choose an Employee --</option>';
+        toggleBtn.disabled = true;
+        toggleBtn.textContent = 'Select User';
+        toggleBtn.style.background = 'var(--surface)';
+        toggleBtn.style.color = 'var(--text-dim)';
+        statusMsg.textContent = 'Choose an employee to see their current lock status.';
+
+        selectedPhoneCompany = cachedCompanies.find(c => c.id === companyId);
+
+        if (!companyId || !selectedPhoneCompany || !selectedPhoneCompany.employees || selectedPhoneCompany.employees.length === 0) {
+            userSelect.disabled = true;
+            userSelect.innerHTML = '<option value="">No employees found</option>';
+            return;
         }
 
-        // Sync local cache
-        const allData = await FirebaseService.getAll();
-        Storage.save(allData);
+        userSelect.disabled = false;
+        selectedPhoneCompany.employees.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp.id;
+            opt.textContent = `${emp.firstName || ''} ${emp.lastName || ''} (${emp.email || 'No email'})`;
+            userSelect.appendChild(opt);
+        });
+    });
 
-        // Flip button label
-        if (btn) btn.innerHTML = shouldLock ? '🔓 Unlock Phones' : '🔒 Lock Phones';
+    // User Selection Changed
+    userSelect.addEventListener('change', (e) => {
+        const userId = e.target.value;
+        if (!userId) {
+            toggleBtn.disabled = true;
+            toggleBtn.textContent = 'Select User';
+            toggleBtn.style.background = 'var(--surface)';
+            toggleBtn.style.color = 'var(--text-dim)';
+            statusMsg.textContent = 'Choose an employee to see their current lock status.';
+            selectedPhoneUser = null;
+            return;
+        }
 
-        log(`Done! ${shouldLock ? 'Locked' : 'Unlocked'} ${count} phone numbers`, 'success');
-        setStatus('success', shouldLock ? 'Phones Hidden' : 'Phones Visible');
-    } catch (error) {
-        console.error('Toggle phone lock error:', error);
-        log(`Error: ${error.message}`, 'error');
-        setStatus('error', 'Toggle Failed');
-    }
+        selectedPhoneUser = selectedPhoneCompany.employees.find(emp => emp.id === userId);
+
+        if (!selectedPhoneUser.phone) {
+            toggleBtn.disabled = true;
+            toggleBtn.textContent = 'No Phone Number';
+            statusMsg.textContent = 'This user does not have a phone number on file to lock.';
+            return;
+        }
+
+        toggleBtn.disabled = false;
+        if (selectedPhoneUser.phoneLocked) {
+            toggleBtn.textContent = '🔓 Unlock Phone Number';
+            toggleBtn.style.background = 'rgba(34, 197, 94, 0.15)'; // Green
+            toggleBtn.style.color = '#22c55e';
+            statusMsg.innerHTML = 'Currently: <strong style="color: #f87171">Locked (Encrypted)</strong>';
+        } else {
+            toggleBtn.textContent = '🔒 Lock Phone Number';
+            toggleBtn.style.background = 'rgba(239, 68, 68, 0.15)'; // Red
+            toggleBtn.style.color = '#f87171';
+            statusMsg.innerHTML = 'Currently: <strong style="color: #22c55e">Visible (Plaintext)</strong>';
+        }
+    });
+
+    // Execute Lock/Unlock Toggle
+    toggleBtn.addEventListener('click', async () => {
+        if (!selectedPhoneCompany || !selectedPhoneUser) return;
+
+        const isLocking = !selectedPhoneUser.phoneLocked;
+        const actionText = isLocking ? 'Locking' : 'Unlocking';
+
+        toggleBtn.disabled = true;
+        toggleBtn.textContent = `${actionText}...`;
+        setStatus('processing', `${actionText} phone for ${selectedPhoneUser.firstName}...`);
+        log(`${actionText} phone number for ${selectedPhoneUser.firstName} ${selectedPhoneUser.lastName}`, 'processing');
+
+        try {
+            // Note: Make sure encryptPhone/decryptPhone are imported!
+            const newPhoneVal = isLocking
+                ? encryptPhone(selectedPhoneUser.phone)
+                : decryptPhone(selectedPhoneUser.phone);
+
+            const updates = {
+                phone: newPhoneVal,
+                phoneLocked: isLocking
+            };
+
+            await FirebaseService.updateEmployee(selectedPhoneCompany.id, selectedPhoneUser.id, updates);
+
+            // Update local cache
+            selectedPhoneUser.phone = newPhoneVal;
+            selectedPhoneUser.phoneLocked = isLocking;
+
+            const allData = await FirebaseService.getAll();
+            Storage.save(allData);
+
+            log(`Successfully ${isLocking ? 'locked' : 'unlocked'} phone for ${selectedPhoneUser.firstName}`, 'success');
+            setStatus('success', isLocking ? 'Phone Locked' : 'Phone Unlocked');
+            closeModal();
+
+        } catch (error) {
+            console.error('Phone toggle error:', error);
+            log(`Failed to toggle phone lock: ${error.message}`, 'error');
+            setStatus('error', 'Update Failed');
+            toggleBtn.disabled = false;
+        }
+    });
 };
 
 /**
@@ -220,8 +346,8 @@ const setupEventListeners = () => {
         console.error('CRITICAL: btnDeduplicate not found in DOM');
     }
 
-    // LOCK PHONES BUTTON
-    document.getElementById('btnLockPhones')?.addEventListener('click', togglePhoneLock);
+    // Manage Phone Locks Modal Initialization
+    initPhoneLockModal();
 
     // Edit Mode Toggle
     const toggleEditMode = document.getElementById('toggleEditMode');
@@ -397,17 +523,7 @@ const init = async () => {
     setupEventListeners();
     loadApiKeys();
 
-    // Sync Lock Phones button label with current Firebase state
-    try {
-        const companies = await FirebaseService.getAll();
-        const anyLocked = companies.some(c =>
-            (c.employees || []).some(emp => emp.phoneLocked)
-        );
-        const btn = document.getElementById('btnLockPhones');
-        if (btn) btn.innerHTML = anyLocked ? '🔓 Unlock Phones' : '🔒 Lock Phones';
-    } catch (e) {
-        console.warn('Could not sync phone lock state:', e.message);
-    }
+    // No need to sync global phone lock button anymore; handled via Modal selection
 
     log('Admin panel ready', 'info');
 };
