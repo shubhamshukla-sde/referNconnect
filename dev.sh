@@ -12,11 +12,11 @@ start_server() {
         exit 1
     fi
     
-    echo "🚀 Starting dev server with hot reload on http://localhost:$PORT"
-    npx -y browser-sync start --server --port $PORT --files "**/*.html, **/*.css, **/*.js" --no-notify &
+    echo "🚀 Starting dev server on http://localhost:$PORT"
+    echo "📡 Perplexity API proxy enabled at /api/perplexity"
+    node server.js &
     echo $! > "$PID_FILE"
     echo "✅ Server started! PID: $(cat $PID_FILE)"
-    echo "📝 Edit any file and browser will auto-refresh!"
 }
 
 stop_server() {
@@ -24,14 +24,13 @@ stop_server() {
         PID=$(cat "$PID_FILE")
         echo "🛑 Stopping server (PID: $PID)..."
         kill $PID 2>/dev/null
-        # Also kill any browser-sync processes
-        pkill -f "browser-sync" 2>/dev/null
+        # Also kill any leftover node server processes
+        pkill -f "node server.js" 2>/dev/null
         rm -f "$PID_FILE"
         echo "✅ Server stopped!"
     else
         echo "⚠️  No server running (PID file not found)"
-        # Try to kill any orphaned browser-sync processes
-        pkill -f "browser-sync" 2>/dev/null
+        pkill -f "node server.js" 2>/dev/null
     fi
 }
 
@@ -61,12 +60,12 @@ case "$1" in
         status_server
         ;;
     *)
-        echo "📦 Dev Server - Hot Reload for referNconnect"
+        echo "📦 Dev Server - referNconnect"
         echo ""
         echo "Usage: ./dev.sh [command]"
         echo ""
         echo "Commands:"
-        echo "  start   - Start the dev server with hot reload"
+        echo "  start   - Start the dev server with API proxy"
         echo "  stop    - Stop the dev server"
         echo "  status  - Check if server is running"
         echo ""

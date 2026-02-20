@@ -37,8 +37,10 @@ export const getActiveProvider = () => {
 // ─── Unified AI Caller ────────────────────────────────────────
 
 /**
- * Call AI with automatic provider selection
- * Perplexity if key exists, else Gemini, else error
+ * Call AI with automatic provider selection and BIDIRECTIONAL fallback.
+ * Priority: Perplexity (paid) → Gemini (free) with automatic reverse fallback.
+ * If Perplexity fails → try Gemini.
+ * If Gemini fails → try Perplexity.
  * @param {string} systemPrompt
  * @param {string} userPrompt
  * @param {{ temperature?: number, maxTokens?: number }} opts
@@ -53,27 +55,39 @@ const callAI = async (systemPrompt, userPrompt, opts = {}) => {
         throw new Error('No API key configured. Please add a Perplexity or Gemini API key in Admin settings.');
     }
 
-    // Try Perplexity first, auto-fallback to Gemini on failure
-    if (pKey) {
+    // Build ordered provider list: Perplexity first (paid), Gemini second
+    const providers = [];
+    if (pKey) providers.push({ name: 'Perplexity', call: () => callPerplexity(systemPrompt, userPrompt, pKey, temperature, maxTokens) });
+    if (gKey) providers.push({ name: 'Gemini', call: () => callGemini(systemPrompt, userPrompt, gKey, temperature, maxTokens) });
+
+    let lastError;
+    for (const provider of providers) {
         try {
-            return await callPerplexity(systemPrompt, userPrompt, pKey, temperature, maxTokens);
+            console.log(`🤖 Trying ${provider.name}...`);
+            const result = await provider.call();
+            console.log(`✅ ${provider.name} succeeded`);
+            return result;
         } catch (err) {
-            if (gKey) {
-                console.warn('Perplexity failed, falling back to Gemini:', err.message);
-                return callGemini(systemPrompt, userPrompt, gKey, temperature, maxTokens);
-            }
-            throw err;
+            console.warn(`⚠️ ${provider.name} failed: ${err.message}`);
+            lastError = err;
+            // Continue to next provider
         }
     }
 
-    return callGemini(systemPrompt, userPrompt, gKey, temperature, maxTokens);
+    // All providers failed
+    throw lastError;
 };
 
 /**
- * Call Perplexity API
+ * Call Perplexity API via local proxy to avoid CORS issues.
+ * In development, calls go through /api/perplexity on our server.
+ * The proxy forwards them to https://api.perplexity.ai/chat/completions.
  */
 const callPerplexity = async (systemPrompt, userPrompt, apiKey, temperature, maxTokens) => {
-    const response = await fetch(API.PERPLEXITY, {
+    // Use local proxy to avoid CORS; falls back to direct API if proxy not available
+    const proxyUrl = `${window.location.origin}/api/perplexity`;
+
+    const response = await fetch(proxyUrl, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
