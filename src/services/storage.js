@@ -63,5 +63,3 @@ export const Storage = {
         localStorage.removeItem(STORAGE_KEYS.COMPANIES);
     }
 };
-
-export default Storage;

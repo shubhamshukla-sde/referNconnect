@@ -1,158 +1,19 @@
 /**
- * AI Service
- * Handles AI integration with dual provider support:
- * - Perplexity AI (primary, if key provided)
- * - Google Gemini (fallback / free tier)
+ * @module AI Prompts
+ * High-level AI use-cases: data parsing, job search, and resume analysis.
+ * Each function builds a system+user prompt and delegates to callAI.
  */
 
-import { API, STORAGE_KEYS } from '../config/index.js';
-import { generateId } from '../utils/helpers.js';
-
-// ─── API Key Management ───────────────────────────────────────
-
-/** Get Perplexity API key */
-export const getApiKey = () => localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
-
-/** Save Perplexity API key */
-export const saveApiKey = (key) => localStorage.setItem(STORAGE_KEYS.API_KEY, key);
-
-/** Get Gemini API key */
-export const getGeminiKey = () => localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY) || '';
-
-/** Save Gemini API key */
-export const saveGeminiKey = (key) => localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY, key);
-
-/**
- * Get active AI provider info
- * @returns {{ provider: string, key: string } | null}
- */
-export const getActiveProvider = () => {
-    const pKey = getApiKey();
-    if (pKey) return { provider: 'perplexity', key: pKey };
-    const gKey = getGeminiKey();
-    if (gKey) return { provider: 'gemini', key: gKey };
-    return null;
-};
-
-// ─── Unified AI Caller ────────────────────────────────────────
-
-/**
- * Call AI with automatic provider selection and BIDIRECTIONAL fallback.
- * Priority: Perplexity (paid) → Gemini (free) with automatic reverse fallback.
- * If Perplexity fails → try Gemini.
- * If Gemini fails → try Perplexity.
- * @param {string} systemPrompt
- * @param {string} userPrompt
- * @param {{ temperature?: number, maxTokens?: number }} opts
- * @returns {Promise<string>} Raw text response from AI
- */
-const callAI = async (systemPrompt, userPrompt, opts = {}) => {
-    const { temperature = 0.1, maxTokens = 4096 } = opts;
-    const pKey = getApiKey();
-    const gKey = getGeminiKey();
-
-    if (!pKey && !gKey) {
-        throw new Error('No API key configured. Please add a Perplexity or Gemini API key in Admin settings.');
-    }
-
-    // Build ordered provider list: Perplexity first (paid), Gemini second
-    const providers = [];
-    if (pKey) providers.push({ name: 'Perplexity', call: () => callPerplexity(systemPrompt, userPrompt, pKey, temperature, maxTokens) });
-    if (gKey) providers.push({ name: 'Gemini', call: () => callGemini(systemPrompt, userPrompt, gKey, temperature, maxTokens) });
-
-    let lastError;
-    for (const provider of providers) {
-        try {
-            console.log(`🤖 Trying ${provider.name}...`);
-            const result = await provider.call();
-            console.log(`✅ ${provider.name} succeeded`);
-            return result;
-        } catch (err) {
-            console.warn(`⚠️ ${provider.name} failed: ${err.message}`);
-            lastError = err;
-            // Continue to next provider
-        }
-    }
-
-    // All providers failed
-    throw lastError;
-};
-
-/**
- * Call Perplexity API via local proxy to avoid CORS issues.
- * In development, calls go through /api/perplexity on our server.
- * The proxy forwards them to https://api.perplexity.ai/chat/completions.
- */
-const callPerplexity = async (systemPrompt, userPrompt, apiKey, temperature, maxTokens) => {
-    // Use local proxy to avoid CORS; falls back to direct API if proxy not available
-    const proxyUrl = `${window.location.origin}/api/perplexity`;
-
-    const response = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            model: API.PERPLEXITY_MODEL,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ],
-            temperature,
-            max_tokens: maxTokens
-        })
-    });
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error?.message || `Perplexity API error (${response.status})`);
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || '';
-};
-
-/**
- * Call Google Gemini API
- */
-const callGemini = async (systemPrompt, userPrompt, apiKey, temperature, maxTokens) => {
-    const url = `${API.GEMINI}?key=${apiKey}`;
-
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            system_instruction: {
-                parts: [{ text: systemPrompt }]
-            },
-            contents: [{
-                parts: [{ text: userPrompt }]
-            }],
-            generationConfig: {
-                temperature,
-                maxOutputTokens: maxTokens
-            }
-        })
-    });
-
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        const msg = error.error?.message || `Gemini API error (${response.status})`;
-        throw new Error(msg);
-    }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-};
+import { callAI } from './providers.js';
+import { extractAndParseJSON, normalizeData, extractJobSearchJSON, extractResumeJSON } from './parsers.js';
 
 // ─── Data Parsing ─────────────────────────────────────────────
 
 /**
- * Parse data using AI (Perplexity or Gemini)
- * @param {string} rawData - Raw input data
- * @param {string} dataType - 'text', 'csv', or 'json'
- * @returns {Promise<Array>} Structured company/employee data
+ * Parse raw input data using AI into structured company/employee format.
+ * @param {string} rawData - Raw input data (CSV, JSON, or plain text)
+ * @param {string} [dataType='text'] - Type hint: 'text', 'csv', or 'json'
+ * @returns {Promise<Array>} Normalized array of company objects with employees
  */
 export const parseWithAI = async (rawData, dataType = 'text') => {
     const systemPrompt = `You are a data extraction assistant. Extract employee and company information from the provided data and return it as a structured JSON array.
@@ -220,11 +81,11 @@ OUTPUT FORMAT (return ONLY this JSON, no other text):
 // ─── Job Search ───────────────────────────────────────────────
 
 /**
- * Search for recent job posts for a company
+ * Search for recent job posts for a company using AI-generated Google search links.
  * @param {string} companyName
- * @param {string} location
- * @param {string} timeRange - week, month, quarter, year, all
- * @returns {Promise<Object>}
+ * @param {string} [location=''] - Optional location filter
+ * @param {string} [timeRange='month'] - 'week', 'month', 'quarter', 'year', or 'all'
+ * @returns {Promise<Object>} Job search results with search links
  */
 export const searchJobPosts = async (companyName, location = '', timeRange = 'month') => {
     const encodedCompany = encodeURIComponent(companyName);
@@ -280,9 +141,9 @@ Add time filter "${timeFilter}" for ${timeLabel} results. Make URLs clickable.`;
 // ─── Resume Parsing ───────────────────────────────────────────
 
 /**
- * Parse resume text to extract skills and experience
- * @param {string} resumeText
- * @returns {Promise<Object>}
+ * Parse resume text to extract skills, experience, and education.
+ * @param {string} resumeText - Full text content of a resume
+ * @returns {Promise<Object>} Structured resume data
  */
 export const parseResume = async (resumeText) => {
     const systemPrompt = `You are a resume parser and job market expert. Extract skills from the resume and identify the most in-demand ones.
@@ -329,12 +190,12 @@ INSTRUCTIONS:
 // ─── Job Search with Resume ───────────────────────────────────
 
 /**
- * Search for jobs matching resume skills
+ * Search for jobs matching a candidate's resume skills at a specific company.
  * @param {string} companyName
- * @param {Array} skills
- * @param {string} candidateLocation
- * @param {string} timeRange
- * @returns {Promise<Object>}
+ * @param {Array<string>} skills - Candidate's skills list
+ * @param {string} [candidateLocation=''] - Candidate's location
+ * @param {string} [timeRange='month'] - Time filter
+ * @returns {Promise<Object>} Job search results with match info
  */
 export const searchJobsWithResume = async (companyName, skills, candidateLocation = '', timeRange = 'month') => {
     const skillsList = skills.slice(0, 10).join(', ');
@@ -425,92 +286,4 @@ ${candidateLocation ? `4. Jobs in ${candidateLocation}` : ''}
         console.error('Job search with resume error:', error);
         throw error;
     }
-};
-
-// ─── JSON Parsing Helpers ─────────────────────────────────────
-
-const extractAndParseJSON = (content) => {
-    let cleaned = content
-        .replace(/```json\s*/gi, '')
-        .replace(/```\s*/g, '')
-        .trim();
-
-    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-        throw new Error('Could not extract JSON array from AI response');
-    }
-
-    let jsonStr = jsonMatch[0]
-        .replace(/,\s*([}\]])/g, '$1')
-        .replace(/:\s*"([^"]*)\n([^"]*)"/g, ': "$1 $2"')
-        .replace(/[\x00-\x1F\x7F]/g, ' ')
-        .replace(/""\s*:/g, '":')
-        .replace(/:\s*""/g, ': ""');
-
-    try {
-        return JSON.parse(jsonStr);
-    } catch (e) {
-        console.warn('Initial JSON parse failed, attempting aggressive cleanup...');
-        const objectMatches = jsonStr.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g);
-        if (objectMatches && objectMatches.length > 0) {
-            const objects = [];
-            for (const objStr of objectMatches) {
-                try { objects.push(JSON.parse(objStr)); } catch { /* skip */ }
-            }
-            if (objects.length > 0) return objects;
-        }
-        throw new Error('Could not parse AI response as JSON: ' + e.message);
-    }
-};
-
-const normalizeData = (data) => {
-    if (!Array.isArray(data)) throw new Error('Expected array of companies');
-    return data.map(company => ({
-        id: generateId(),
-        name: company.name || company.companyName || 'N/A',
-        domain: company.domain || company.companyDomain || '',
-        industry: company.industry || '',
-        size: company.size || '',
-        type: company.type || '',
-        headquarters: company.headquarters || '',
-        linkedin: company.linkedin || company.companyLinkedin || '',
-        employees: (company.employees || []).map(emp => ({
-            id: generateId(),
-            firstName: emp.firstName || emp.first_name || '',
-            lastName: emp.lastName || emp.last_name || '',
-            email: emp.email || '',
-            phone: emp.phone || '',
-            jobTitle: emp.jobTitle || emp.job_title || emp.title || 'Team Member',
-            linkedin: emp.linkedin || '',
-            location: emp.location || ''
-        }))
-    }));
-};
-
-const extractJobSearchJSON = (content) => {
-    let cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { company: '', jobPosts: [], hiringStatus: 'Unknown', notes: 'Could not parse response' };
-    try { return JSON.parse(jsonMatch[0]); }
-    catch (e) { console.warn('Job search JSON parse failed:', e); return { company: '', jobPosts: [], hiringStatus: 'Unknown', notes: 'Could not parse response' }; }
-};
-
-const extractResumeJSON = (content) => {
-    let cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return { skills: [], experience: [], education: [], totalYearsExperience: 0, summary: '' };
-    try { return JSON.parse(jsonMatch[0]); }
-    catch (e) { console.warn('Resume JSON parse failed:', e); return { skills: [], experience: [], education: [], totalYearsExperience: 0, summary: '' }; }
-};
-
-// ─── Resume Storage ───────────────────────────────────────────
-
-export const saveResumeData = (resumeData) => localStorage.setItem('resumeData', JSON.stringify(resumeData));
-export const getResumeData = () => { const d = localStorage.getItem('resumeData'); return d ? JSON.parse(d) : null; };
-export const clearResumeData = () => localStorage.removeItem('resumeData');
-
-export default {
-    getApiKey, saveApiKey, getGeminiKey, saveGeminiKey, getActiveProvider,
-    parseWithAI, searchJobPosts, parseResume, searchJobsWithResume,
-    saveResumeData, getResumeData, clearResumeData
 };

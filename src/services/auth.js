@@ -1,6 +1,7 @@
 /**
- * Auth Service
- * Firebase Authentication for admin/protected pages
+ * @module Auth Service
+ * Firebase Authentication for admin/protected pages.
+ * Uses shared Firebase config from config/index.js.
  */
 
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
@@ -11,19 +12,10 @@ import {
     onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-// Firebase Configuration (same as firebase.js)
-const firebaseConfig = {
-    apiKey: "AIzaSyAmZLDH2V9JTHB2ZiHZdRcv0yO07MQVaM0",
-    authDomain: "refernconnect-953b0.firebaseapp.com",
-    projectId: "refernconnect-953b0",
-    storageBucket: "refernconnect-953b0.firebasestorage.app",
-    messagingSenderId: "9614706593",
-    appId: "1:9614706593:web:48d0ac91bf301f90ea6de0"
-};
+import { FIREBASE_CONFIG } from '../config/index.js';
 
-// Use existing app if already initialized, otherwise initialize
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-
+// Reuse existing app if already initialized (prevents duplicate-app crashes)
+const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 
 /**
@@ -55,5 +47,6 @@ export const onAuthChange = (callback) => {
 
 /**
  * Get current user (synchronous, may be null on first load)
+ * @returns {import('firebase/auth').User | null}
  */
 export const getCurrentUser = () => auth.currentUser;

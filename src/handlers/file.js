@@ -41,5 +41,3 @@ export const handleFileUpload = async (file, state, onComplete) => {
 
     onComplete?.();
 };
-
-export default { handleFileUpload };

@@ -74,8 +74,3 @@ export const createEmployeeCard = (emp, company) => {
         </div>
     `;
 };
-
-export default {
-    createCompanyCard,
-    createEmployeeCard
-};
