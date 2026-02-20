@@ -17,6 +17,35 @@ export const generateId = () => {
 };
 
 /**
+ * Phone Number Encryption/Decryption
+ * Uses CryptoJS (AES) injected via index.html to securely redact phones on the client side.
+ */
+const PHONE_SECRET_KEY = "rNc_s3cr3t_pA$$c0d3_2026!"; // Secret key for AES encryption
+
+export const encryptPhone = (phone) => {
+    if (!phone) return phone;
+    try {
+        if (phone.startsWith('U2FsdGVkX1')) return phone; // Already encrypted
+        return CryptoJS.AES.encrypt(phone, PHONE_SECRET_KEY).toString();
+    } catch (e) {
+        console.error("Encryption failed:", e);
+        return phone;
+    }
+};
+
+export const decryptPhone = (cipherText) => {
+    if (!cipherText) return cipherText;
+    try {
+        if (!cipherText.startsWith('U2FsdGVkX1')) return cipherText; // Not encrypted
+        const bytes = CryptoJS.AES.decrypt(cipherText, PHONE_SECRET_KEY);
+        return bytes.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+        console.error("Decryption failed:", e);
+        return cipherText;
+    }
+};
+
+/**
  * Format URL to ensure it has a protocol
  * @param {string} url - URL to format
  * @returns {string} Formatted URL with protocol
@@ -214,6 +243,8 @@ export const findMatchingEmployee = (employeeList, newEmp) => {
 
 export default {
     generateId,
+    encryptPhone,
+    decryptPhone,
     formatUrl,
     formatSize,
     debounce,
