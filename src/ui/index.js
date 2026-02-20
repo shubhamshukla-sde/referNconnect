@@ -49,7 +49,7 @@ export const renderDirectory = (companies, filter = '', callbacks = {}) => {
             callbacks.onEditCompany?.(id);
         });
 
-        card.querySelector('.btn-view')?.addEventListener('click', (e) => {
+        card.querySelector('.btn-open')?.addEventListener('click', (e) => {
             e.stopPropagation();
             callbacks.onOpenCompany?.(company);
         });
@@ -82,7 +82,7 @@ export const renderDetail = (company, callbacks = {}) => {
         <div class="detail-header-content">
             <div class="detail-header-main">
                <h1 class="detail-title">${company.name}</h1>
-               <p class="detail-subtitle">Displaying all referral contacts for ${company.name}</p>
+               <p class="detail-subtitle">Contacts at ${company.name}</p>
             </div>
             <div class="detail-header-meta">
                 <div class="detail-meta-item">${company.industry || 'General'}</div>
