@@ -4,7 +4,7 @@
  */
 
 import { FirebaseService, Storage } from '../services/index.js';
-import { getApiKey, saveApiKey, getGeminiKey, saveGeminiKey, getActiveProvider, parseWithAI } from '../services/ai.js';
+import { getApiKey, saveApiKey, getGeminiKey, saveGeminiKey, getActiveProvider, parseWithAI } from '../services/ai/index.js';
 import { generateId, findMatchingEmployee, mergeEmployeeData } from '../utils/helpers.js';
 
 // State

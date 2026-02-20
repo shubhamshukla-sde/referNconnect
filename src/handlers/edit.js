@@ -41,5 +41,3 @@ export const saveEdit = async (state, onComplete) => {
     state.editingTarget = null;
     onComplete?.(type, pid);
 };
-
-export default { saveEdit };

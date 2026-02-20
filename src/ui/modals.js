@@ -92,9 +92,3 @@ export const getEditFormValues = (type) => {
 
     return values;
 };
-
-export default {
-    openEditModal,
-    hideModal,
-    getEditFormValues
-};

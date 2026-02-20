@@ -30,8 +30,3 @@ export const getActiveView = () => {
     const activeView = document.querySelector('.view.active');
     return activeView?.id || 'viewLanding';
 };
-
-export default {
-    showView,
-    getActiveView
-};

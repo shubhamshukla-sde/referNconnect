@@ -43,116 +43,13 @@ export function initAuthGuard() {
     `;
     document.body.prepend(gate);
 
-    // Inject styles
-    const style = document.createElement('style');
-    style.textContent = `
-        .auth-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg, #0a0a0c);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            padding: 1.5rem;
-        }
-        .auth-card {
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-        }
-        .auth-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-        .auth-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text, #f9fafb);
-            margin-bottom: 0.3rem;
-        }
-        .auth-subtitle {
-            color: var(--text-dim, #9ca3af);
-            font-size: 0.85rem;
-            margin-bottom: 1.5rem;
-        }
-        .auth-input {
-            width: 100%;
-            padding: 0.85rem 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 0.75rem;
-            color: var(--text, #f9fafb);
-            font-size: 0.9rem;
-            outline: none;
-            margin-bottom: 0.75rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            font-family: inherit;
-        }
-        .auth-input:focus {
-            border-color: var(--primary, #818cf8);
-            box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
-        }
-        .auth-input::placeholder {
-            color: var(--text-dim, #9ca3af);
-        }
-        .auth-error {
-            color: #f87171;
-            font-size: 0.8rem;
-            min-height: 1.2rem;
-            margin-bottom: 0.5rem;
-            text-align: left;
-        }
-        .auth-btn {
-            width: 100%;
-            padding: 0.85rem;
-            background: var(--primary, #818cf8);
-            color: white;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .auth-btn:hover:not(:disabled) {
-            opacity: 0.9;
-            transform: scale(1.01);
-        }
-        .auth-btn:disabled {
-            opacity: 0.6;
-            cursor: wait;
-        }
-        .auth-back {
-            display: inline-block;
-            margin-top: 1.25rem;
-            color: var(--text-dim, #9ca3af);
-            text-decoration: none;
-            font-size: 0.82rem;
-            transition: color 0.2s;
-        }
-        .auth-back:hover {
-            color: var(--text, #f9fafb);
-        }
-        /* Sign out button injected into page header */
-        .signout-btn {
-            padding: 0.4rem 0.7rem;
-            border-radius: 0.5rem;
-            font-size: 0.78rem;
-            cursor: pointer;
-            border: 1px solid rgba(239,68,68,0.2);
-            background: rgba(239,68,68,0.08);
-            color: #f87171;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .signout-btn:hover {
-            background: rgba(239,68,68,0.15);
-            border-color: rgba(239,68,68,0.4);
-        }
-    `;
-    document.head.appendChild(style);
+    // Link external auth styles (avoids injecting ~100 lines of inline CSS)
+    if (!document.querySelector('link[href*="auth.css"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '../styles/auth.css';
+        document.head.appendChild(link);
+    }
 
     // Handle form submission
     const form = document.getElementById('authForm');

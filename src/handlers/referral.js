@@ -21,5 +21,3 @@ export const handleAskReferral = (emp) => {
 
     window.open(gmailUrl, '_blank');
 };
-
-export default { handleAskReferral };

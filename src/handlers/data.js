@@ -87,5 +87,3 @@ export const handleClear = (state, onComplete) => {
     executeBtn.addEventListener('click', onConfirm);
     cancelBtn.addEventListener('click', hide);
 };
-
-export default { initializeData, handleClear };

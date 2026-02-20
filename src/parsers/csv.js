@@ -133,5 +133,3 @@ export const parse = (text) => {
 
     return Array.from(companyMap.values());
 };
-
-export default { parse };

@@ -1,6 +1,7 @@
 /**
- * Firebase Service
- * Handles all Firestore database operations for companies and employees
+ * @module Firebase Service
+ * Handles all Firestore database operations for companies and employees.
+ * Uses shared Firebase config from config/index.js.
  */
 
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
@@ -15,21 +16,11 @@ import {
     deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
+import { FIREBASE_CONFIG } from '../config/index.js';
 import { generateId } from '../utils/helpers.js';
 
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAmZLDH2V9JTHB2ZiHZdRcv0yO07MQVaM0",
-    authDomain: "refernconnect-953b0.firebaseapp.com",
-    projectId: "refernconnect-953b0",
-    storageBucket: "refernconnect-953b0.firebasestorage.app",
-    messagingSenderId: "9614706593",
-    appId: "1:9614706593:web:48d0ac91bf301f90ea6de0",
-    measurementId: "G-GTQJ7GLB4Y"
-};
-
-// Initialize Firebase (safe: re-use existing app if auth-guard loaded first)
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// Reuse existing app if already initialized (prevents duplicate-app crashes)
+const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
 const db = getFirestore(app);
 
 const COMPANIES_COLLECTION = 'companies';
@@ -39,7 +30,7 @@ const COMPANIES_COLLECTION = 'companies';
  */
 export const FirebaseService = {
     /**
-     * READ - Fetch all companies with their employees
+     * READ — Fetch all companies with their employees
      * @returns {Promise<Array>} Array of company objects
      */
     getAll: async () => {
@@ -61,7 +52,7 @@ export const FirebaseService = {
     },
 
     /**
-     * READ - Get a single company by ID
+     * READ — Get a single company by ID
      * @param {string} companyId - Company document ID
      * @returns {Promise<Object|null>} Company object or null
      */
@@ -77,7 +68,7 @@ export const FirebaseService = {
     },
 
     /**
-     * CREATE - Add a new company
+     * CREATE — Add a new company
      * @param {Object} companyData - Company data to add
      * @returns {Promise<Object>} Created company with ID
      */
@@ -98,7 +89,7 @@ export const FirebaseService = {
     },
 
     /**
-     * UPDATE - Update a company
+     * UPDATE — Update a company
      * @param {string} companyId - Company document ID
      * @param {Object} updates - Fields to update
      * @returns {Promise<boolean>} Success status
@@ -119,7 +110,7 @@ export const FirebaseService = {
     },
 
     /**
-     * DELETE - Remove a company
+     * DELETE — Remove a company
      * @param {string} companyId - Company document ID
      * @returns {Promise<boolean>} Success status
      */
@@ -136,7 +127,7 @@ export const FirebaseService = {
     },
 
     /**
-     * UPDATE - Update an employee within a company
+     * UPDATE — Update an employee within a company
      * @param {string} companyId - Company document ID
      * @param {string} employeeId - Employee ID
      * @param {Object} updates - Fields to update
@@ -146,7 +137,6 @@ export const FirebaseService = {
         try {
             const company = await FirebaseService.getById(companyId);
             if (!company) {
-                console.error(`❌ updateEmployee: Company ${companyId} not found`);
                 throw new Error(`Company not found: ${companyId}`);
             }
 
@@ -164,7 +154,7 @@ export const FirebaseService = {
     },
 
     /**
-     * DELETE - Remove an employee from a company
+     * DELETE — Remove an employee from a company
      * @param {string} companyId - Company document ID
      * @param {string} employeeId - Employee ID
      * @returns {Promise<boolean>} Success status
@@ -185,7 +175,7 @@ export const FirebaseService = {
     },
 
     /**
-     * CREATE - Add an employee to a company
+     * CREATE — Add an employee to a company
      * @param {string} companyId - Company document ID
      * @param {Object} employeeData - Employee data
      * @returns {Promise<Object>} Created employee with ID
@@ -194,7 +184,6 @@ export const FirebaseService = {
         try {
             const company = await FirebaseService.getById(companyId);
             if (!company) {
-                console.error(`❌ addEmployee: Company ${companyId} not found`);
                 throw new Error(`Company not found: ${companyId}`);
             }
 
@@ -211,7 +200,7 @@ export const FirebaseService = {
     },
 
     /**
-     * BULK IMPORT - Import multiple companies
+     * BULK IMPORT — Import multiple companies
      * @param {Array} companies - Array of company objects
      * @returns {Promise<number>} Number of imported companies
      */
@@ -232,7 +221,7 @@ export const FirebaseService = {
     },
 
     /**
-     * CLEAR - Delete all companies (use with caution!)
+     * CLEAR — Delete all companies (use with caution!)
      * @returns {Promise<boolean>} Success status
      */
     clearAll: async () => {

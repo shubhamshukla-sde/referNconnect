@@ -3,15 +3,19 @@
  * Central configuration for the entire application
  */
 
-// Firebase Configuration
+// Firebase Configuration — single source of truth
 export const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAl3T9L7bEy4I3DFHtVEJNSfQxjI2N3VXw",
-    authDomain: "refernconnect.firebaseapp.com",
-    projectId: "refernconnect",
-    storageBucket: "refernconnect.firebasestorage.app",
-    messagingSenderId: "619943821912",
-    appId: "1:619943821912:web:7f0c0d6f5c3a5d8e9f1a2b"
+    apiKey: "AIzaSyAmZLDH2V9JTHB2ZiHZdRcv0yO07MQVaM0",
+    authDomain: "refernconnect-953b0.firebaseapp.com",
+    projectId: "refernconnect-953b0",
+    storageBucket: "refernconnect-953b0.firebasestorage.app",
+    messagingSenderId: "9614706593",
+    appId: "1:9614706593:web:48d0ac91bf301f90ea6de0",
+    measurementId: "G-GTQJ7GLB4Y"
 };
+
+// Firebase SDK version — used for CDN imports
+export const FIREBASE_VERSION = '10.8.0';
 
 // API Endpoints
 export const API = {
@@ -69,6 +73,7 @@ export const ERRORS = {
 // Default export for convenience
 export default {
     FIREBASE_CONFIG,
+    FIREBASE_VERSION,
     API,
     STORAGE_KEYS,
     FIELD_MAPPINGS,
