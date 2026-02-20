@@ -129,4 +129,22 @@ const openEditModal = (type, id, parentId = null) => {
 
 document.addEventListener('DOMContentLoaded', init);
 
+// ─── Global Utilities ─────────────────────────────────────────
+
+window.copyToClipboard = (text, element) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        const textSpan = element.querySelector('span');
+        if (textSpan) {
+            const originalText = textSpan.innerText;
+            textSpan.innerText = 'Copied!';
+            element.classList.add('copied');
+            setTimeout(() => {
+                textSpan.innerText = originalText;
+                element.classList.remove('copied');
+            }, 1500);
+        }
+    }).catch(err => console.error('Failed to copy', err));
+};
+
 export default { state };

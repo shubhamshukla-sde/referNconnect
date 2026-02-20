@@ -27,9 +27,9 @@
     --danger-soft: rgba(239, 68, 68, 0.08);
 
     /* ─── Typography ─── */
-    --text: #e8eaed;
-    --text-secondary: #9aa0ab;
-    --text-dim: #636b78;
+    --text: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-dim: #64748b;
 
     /* ─── Layout Tokens ─── */
     --radius-sm: 0.5rem;
@@ -55,6 +55,10 @@ body {
     justify-content: center;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 #app {
@@ -218,6 +222,15 @@ body.edit-mode .btn-edit {
     font-size: 1rem;
     letter-spacing: -0.02em;
     border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.company-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
 }
 
 /* ── Card Body ── */
@@ -451,9 +464,9 @@ body.edit-mode .btn-edit {
     align-items: center;
     gap: 0.35rem;
     padding: 0.45rem 0.85rem;
-    background: transparent;
-    color: var(--primary);
-    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: #fff;
+    border: none;
     border-radius: var(--radius-pill);
     font-size: 0.78rem;
     font-weight: 600;
@@ -463,7 +476,31 @@ body.edit-mode .btn-edit {
 }
 
 .btn-contact:hover {
-    background: var(--primary-soft);
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(91, 156, 245, 0.2);
+}
+
+.copyable {
+    cursor: pointer;
+    transition: all var(--transition);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.4rem;
+    margin-left: -0.4rem;
+}
+
+.copyable:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+.copyable.copied {
+    color: var(--success);
+}
+
+.copyable.copied svg {
+    color: var(--success);
+    opacity: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════

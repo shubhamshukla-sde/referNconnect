@@ -113,7 +113,7 @@ export const renderDetail = (company, callbacks = {}) => {
             callbacks.onEditEmployee?.(empId, companyId);
         });
 
-        card.querySelector('.btn-referral')?.addEventListener('click', () => {
+        card.querySelector('.btn-contact')?.addEventListener('click', () => {
             callbacks.onAskReferral?.(emp);
         });
     });
